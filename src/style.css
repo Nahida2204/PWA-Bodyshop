@@ -1,0 +1,180 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0f0f1a;
+  color: #f0f0f0;
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: #16003a;
+  border-bottom: 1px solid #3a003a;
+}
+#logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+header p  { font-size: 12px; color: #a070c0; }
+
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+/* ── Upload zone ──────────────────────────────────── */
+#drop-zone {
+  border: 2px dashed #2a1a3a;
+  border-radius: 16px;
+  padding: 40px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  margin-bottom: 10px;
+  background: #0d0010;
+}
+#drop-zone:hover, #drop-zone.drag {
+  border-color: #800080;
+  background: #160020;
+}
+#drop-zone p { color: #666; font-size: 13px; margin-top: 10px; }
+
+/* ── Camera button ────────────────────────────────── */
+.btn-cam {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; background: #16003a; color: #c070e0;
+  border: 1px solid #3a006a; border-radius: 12px;
+  padding: 12px; cursor: pointer; font-size: 14px;
+  margin-bottom: 14px; transition: background .2s;
+}
+.btn-cam:hover { background: #200050; }
+
+/* ── Preview ──────────────────────────────────────── */
+#preview-wrap {
+  display: none; position: relative;
+  margin-bottom: 14px;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid #2a1a3a;
+}
+#preview { width: 100%; display: block; }
+#overlay {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%; pointer-events: none;
+}
+
+/* ── Error ────────────────────────────────────────── */
+#error-box {
+  display: none;
+  background: #2a1515; border: 1px solid #e74c3c;
+  border-radius: 10px; padding: 12px;
+  color: #e74c3c; font-size: 13px; margin-bottom: 12px;
+}
+
+/* ── Loading ──────────────────────────────────────── */
+#dmg-loading {
+  display: none; text-align: center; padding: 28px 0;
+}
+#dmg-loading p { color: #666; font-size: 13px; margin-top: 10px; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #1a0030;
+  border-top-color: #800080;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Buttons ──────────────────────────────────────── */
+.btn {
+  width: 100%; padding: 14px; border-radius: 12px;
+  border: none; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: opacity .2s, background .2s;
+  margin-bottom: 8px;
+}
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn.primary  { background: #800080; color: #fff; }
+.btn.primary:hover:not(:disabled) { background: #9a009a; }
+.btn.ghost    {
+  display: none;
+  background: #16003a; color: #aaa;
+  border: 1px solid #2a1a3a;
+}
+
+/* ── Severity badge ───────────────────────────────── */
+#severity-badge {
+  display: none; border-radius: 14px; padding: 22px;
+  text-align: center; margin: 14px 0;
+}
+.badge-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: .12em; color: rgba(255,255,255,.5);
+}
+.badge-value { font-size: 38px; font-weight: 800; margin: 8px 0; }
+.badge-conf  { font-size: 13px; color: rgba(255,255,255,.45); }
+.sev-minor    { background: #0a2015; border: 1px solid #2ecc71; }
+.sev-moderate { background: #251a05; border: 1px solid #f39c12; }
+.sev-severe   { background: #250a0a; border: 1px solid #e74c3c; }
+
+/* ── Probability bars ─────────────────────────────── */
+#prob-bars {
+  display: none;
+  background: #130025; border-radius: 12px;
+  padding: 16px; margin-bottom: 14px;
+  border: 1px solid #2a1a3a;
+}
+#prob-bars h3 { font-size: 13px; color: #888; margin-bottom: 14px; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-label { width: 72px; font-size: 13px; color: #aaa; }
+.bar-track {
+  flex: 1; height: 10px;
+  background: #0a0015; border-radius: 5px; overflow: hidden;
+}
+.bar-fill  { height: 100%; border-radius: 5px; width: 0; transition: width .7s ease; }
+.bar-pct   { width: 38px; font-size: 12px; color: #666; text-align: right; }
+
+/* ── Damage section ───────────────────────────────── */
+#damage-section, #parts-section {
+  display: none; margin-bottom: 14px;
+}
+#damage-section h2, #parts-section h2 {
+  font-size: 12px; color: #888; margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.dmg-card {
+  background: #130025; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 8px;
+  border-left: 3px solid #e74c3c;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid #2a1a3a; border-left: 3px solid #e74c3c;
+}
+.dmg-type { font-size: 14px; font-weight: 600; }
+.dmg-part { font-size: 12px; color: #888; margin-top: 3px; }
+.dmg-conf-badge {
+  background: #e74c3c22; color: #e74c3c;
+  border-radius: 6px; padding: 3px 10px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+
+/* ── Parts chips ──────────────────────────────────── */
+.part-chip {
+  display: inline-block; border-radius: 20px;
+  padding: 5px 12px; font-size: 12px;
+  margin: 0 5px 6px 0;
+  border: 1px solid #2a1a3a; color: #a070c0;
+  background: #0d0020;
+}
+.part-chip.damaged {
+  border-color: #e74c3c; color: #e74c3c; background: #1a0808;
+}
+/* ── Hidden by default ───────────────────────────────── */
+#preview-wrap   { display: none; }
+#error-box      { display: none; }
+#dmg-loading    { display: none; }
+#reset-btn      { display: none; }
+#severity-badge { display: none; }
+#prob-bars      { display: none; }
+#damage-section { display: none; }
+#parts-section  { display: none; }
