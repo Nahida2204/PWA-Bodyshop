@@ -1,4 +1,4 @@
-const API_URL = "http://192.168.1.45:8000";
+const API_URL = "http://192.168.100.170:8000";
 let selectedFile = null;
 
 // ── Wire up all events after DOM ready ─────────────────

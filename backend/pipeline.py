@@ -6,16 +6,28 @@ import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-PARTS_PATH    = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWATest\models\car_part.pt"
-DAMAGE_PATH   = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWATest\models\best.pt"
-SEVERITY_PATH = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWATest\models\resnet50_severity_best.pth"
-CLASS_NAMES   = ['minor', 'moderate', 'severe']
-IMG_SIZE      = 224
-DEVICE        = torch.device('cpu')
+# ── CONFIG ────────────────────────────────────────────────────────────────────
+
+BASE = r"C:\Users\nrojoa\OneDrive - Leal & Co Ltd\Desktop\PWA-Bodyshop\PWA-Bodyshop\models"
+
+import os
+MAIN_PATH     = os.path.join(BASE, "main.pt")
+VEHIDE_PATH   = os.path.join(BASE, "vehide.pt")
+PARTS_PATH    = os.path.join(BASE, "car_part.pt")
+SEVERITY_PATH = os.path.join(BASE, "resnet50_severity_best.pth")
+
+CLASS_NAMES     = ['minor', 'moderate', 'severe']
+TRIGGER_CLASSES = {"damaged", "dent", "scratch"}
+IMG_SIZE        = 224
+DEVICE          = torch.device('cpu')
+
+# ── LOAD MODELS ───────────────────────────────────────────────────────────────
 
 print("Loading models...")
+
+main_model   = YOLO(MAIN_PATH)
+vehide_model = YOLO(VEHIDE_PATH)
 parts_model  = YOLO(PARTS_PATH)
-damage_model = YOLO(DAMAGE_PATH)
 
 severity_model = models.resnet50(weights=None)
 severity_model.fc = nn.Sequential(
@@ -31,7 +43,10 @@ severity_tf = A.Compose([
     A.Normalize(mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225]),
     ToTensorV2(),
 ])
+
 print("✅ All models loaded")
+
+# ── HELPERS ───────────────────────────────────────────────────────────────────
 
 def dedup(boxes, thresh=0.5):
     if boxes is None or len(boxes) == 0: return boxes
@@ -49,6 +64,7 @@ def dedup(boxes, thresh=0.5):
         order = rest[iou < thresh]
     return boxes[keep]
 
+
 def find_part(dmg_box, parts):
     dx1,dy1,dx2,dy2 = dmg_box
     best, best_iod = 'unknown', 0
@@ -64,36 +80,95 @@ def find_part(dmg_box, parts):
              (dcy-(p['box'][1]+p['box'][3])/2)**2)**0.5)['name']
     return best, round(best_iod*100)
 
-def classify_severity(img):
+
+def classify_severity(img: Image.Image) -> dict:
     arr = np.array(img.convert('RGB'))
     t = severity_tf(image=arr)['image'].unsqueeze(0).to(DEVICE)
     with torch.no_grad():
         p = torch.softmax(severity_model(t), dim=1)[0].cpu().numpy()
-    return CLASS_NAMES[p.argmax()], float(p.max()), p.tolist()
+    return {
+        'class': CLASS_NAMES[p.argmax()],
+        'confidence': round(float(p.max()), 3),
+        'probabilities': {CLASS_NAMES[i]: round(float(p[i]), 3) for i in range(3)}
+    }
+
+
+def padded_crop(img_np, box, pad=20):
+    h, w = img_np.shape[:2]
+    x1=max(0,box[0]-pad); y1=max(0,box[1]-pad)
+    x2=min(w,box[2]+pad); y2=min(h,box[3]+pad)
+    return img_np[y1:y2, x1:x2], (x1, y1)
+
+# ── MAIN ENTRY POINT ──────────────────────────────────────────────────────────
 
 def run_pipeline(img: Image.Image) -> dict:
     img_np = np.array(img.convert('RGB'))
     W, H   = img.size
-    sev_class, sev_conf, sev_probs = classify_severity(img)
-    pb = dedup(parts_model(img_np, conf=0.25, iou=0.4, verbose=False)[0].boxes)
-    parts = []
-    if pb is not None:
-        for i, b in enumerate(pb):
-            parts.append({'idx': i+1, 'name': parts_model.names[int(b.cls[0])],
-                          'conf': round(float(b.conf[0]),3),
-                          'box': b.xyxy[0].cpu().numpy().astype(int).tolist()})
-    db = dedup(damage_model(img_np, conf=0.15, iou=0.4, verbose=False)[0].boxes)
-    damages = []
-    if db is not None:
-        for b in db:
-            box = b.xyxy[0].cpu().numpy().astype(int).tolist()
-            part_name, overlap = find_part(box, parts)
-            damages.append({'type': damage_model.names[int(b.cls[0])],
-                            'conf': round(float(b.conf[0]),3), 'box': box,
-                            'on_part': part_name, 'overlap_pct': overlap})
+
+    # Stage 1 — main.pt + severity on full image
+    s1_severity = classify_severity(img)
+
+    mb = dedup(main_model(img_np, conf=0.40, iou=0.4, verbose=False)[0].boxes)
+    s1_detections = []
+    triggers = []
+    if mb is not None:
+        for b in mb:
+            cls  = main_model.names[int(b.cls[0])].lower().strip()
+            conf = round(float(b.conf[0]), 3)
+            box  = b.xyxy[0].cpu().numpy().astype(int).tolist()
+            det  = {'type': cls, 'conf': conf, 'box': box}
+            s1_detections.append(det)
+            if cls in TRIGGER_CLASSES:
+                triggers.append(det)
+
+    # Stage 2 — vehide.pt + car_part.pt + severity on each trigger crop
+    stage2 = []
+    for trig in triggers:
+        crop_np, (ox, oy) = padded_crop(img_np, trig['box'])
+        crop_pil = Image.fromarray(crop_np)
+
+        crop_severity = classify_severity(crop_pil)
+
+        # vehide.pt on crop
+        vb = dedup(vehide_model(crop_np, conf=0.15, iou=0.4, verbose=False)[0].boxes)
+        vehide_dets = []
+        if vb is not None:
+            for b in vb:
+                cls  = vehide_model.names[int(b.cls[0])].lower().strip()
+                conf = round(float(b.conf[0]), 3)
+                box  = b.xyxy[0].cpu().numpy().astype(int).tolist()
+                vehide_dets.append({'type': cls, 'conf': conf,
+                                    'box': [box[0]+ox, box[1]+oy, box[2]+ox, box[3]+oy]})
+
+        # car_part.pt on crop
+        pb = dedup(parts_model(crop_np, conf=0.25, iou=0.4, verbose=False)[0].boxes)
+        parts = []
+        if pb is not None:
+            for i, b in enumerate(pb):
+                cls  = parts_model.names[int(b.cls[0])].lower().strip()
+                conf = round(float(b.conf[0]), 3)
+                box  = b.xyxy[0].cpu().numpy().astype(int).tolist()
+                parts.append({'idx': i+1, 'name': cls, 'conf': conf,
+                              'box': [box[0]+ox, box[1]+oy, box[2]+ox, box[3]+oy]})
+
+        # match each vehiDE damage to its part
+        for vdet in vehide_dets:
+            part_name, overlap = find_part(vdet['box'], parts)
+            vdet['on_part']     = part_name
+            vdet['overlap_pct'] = overlap
+
+        stage2.append({
+            'triggered_by': trig,
+            'severity':     crop_severity,
+            'damages':      vehide_dets,
+            'parts':        parts,
+        })
+
     return {
-        'severity': {'class': sev_class, 'confidence': round(sev_conf,3),
-                     'probabilities': {CLASS_NAMES[i]: round(sev_probs[i],3) for i in range(3)}},
-        'damages': damages, 'parts': parts,
-        'image_size': {'width': W, 'height': H}
+        'image_size': {'width': W, 'height': H},
+        'stage1': {
+            'severity':   s1_severity,
+            'detections': s1_detections,
+        },
+        'stage2': stage2,
     }
