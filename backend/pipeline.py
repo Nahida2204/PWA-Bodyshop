@@ -8,7 +8,7 @@ from albumentations.pytorch import ToTensorV2
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
-BASE = r"C:\Users\nrojoa\OneDrive - Leal & Co Ltd\Desktop\PWA-Bodyshop\PWA-Bodyshop\models"
+BASE = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWA-Bodyshop\PWA-Bodyshop\models"
 
 import os
 MAIN_PATH     = os.path.join(BASE, "main.pt")
@@ -17,7 +17,7 @@ PARTS_PATH    = os.path.join(BASE, "car_part.pt")
 SEVERITY_PATH = os.path.join(BASE, "resnet50_severity_best.pth")
 
 CLASS_NAMES     = ['minor', 'moderate', 'severe']
-TRIGGER_CLASSES = {"damaged", "dent", "scratch"}
+TRIGGER_CLASSES = {"damaged", "dent", "scratch","dent-or-scratch"}
 IMG_SIZE        = 224
 DEVICE          = torch.device('cpu')
 
@@ -44,7 +44,7 @@ severity_tf = A.Compose([
     ToTensorV2(),
 ])
 
-print("✅ All models loaded")
+print("All models loaded")
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -108,7 +108,7 @@ def run_pipeline(img: Image.Image) -> dict:
     # Stage 1 — main.pt + severity on full image
     s1_severity = classify_severity(img)
 
-    mb = dedup(main_model(img_np, conf=0.40, iou=0.4, verbose=False)[0].boxes)
+    mb = dedup(main_model(img_np, conf=0.10, iou=0.4, verbose=False)[0].boxes)
     s1_detections = []
     triggers = []
     if mb is not None:
@@ -130,7 +130,7 @@ def run_pipeline(img: Image.Image) -> dict:
         crop_severity = classify_severity(crop_pil)
 
         # vehide.pt on crop
-        vb = dedup(vehide_model(crop_np, conf=0.15, iou=0.4, verbose=False)[0].boxes)
+        vb = dedup(vehide_model(crop_np, conf=0.10, iou=0.4, verbose=False)[0].boxes)
         vehide_dets = []
         if vb is not None:
             for b in vb:

@@ -24,11 +24,11 @@
 
   <main>
 
-    <!-- Hidden file inputs — completely standalone -->
+    <!-- Hidden file inputs -->
     <input type="file" id="file-in" accept="image/*" style="display:none" />
     <input type="file" id="cam-in" accept="image/*" capture="environment" style="display:none" />
 
-    <!-- Drop zone — drag only, no click conflict -->
+    <!-- Drop zone -->
     <div id="drop-zone">
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5"
         stroke-linecap="round">
@@ -39,13 +39,10 @@
       <p>Drag image here</p>
     </div>
 
-    <!-- Dedicated upload button -->
     <button class="btn primary" id="upload-btn">📁 Upload Image</button>
+    <button class="btn-cam"     id="cam-btn">📷 Take Photo</button>
 
-    <!-- Camera button -->
-    <button class="btn-cam" id="cam-btn">📷 Take Photo</button>
-
-    <!-- rest of your HTML unchanged below -->
+    <!-- Preview + canvas overlay -->
     <div id="preview-wrap">
       <img id="preview" alt="preview" />
       <canvas id="overlay"></canvas>
@@ -59,52 +56,107 @@
     </div>
 
     <button class="btn primary" id="analyse-btn" disabled>Analyse Damage</button>
-    <button class="btn ghost" id="reset-btn">New Photo</button>
+    <button class="btn ghost"   id="reset-btn">New Photo</button>
 
+    <!-- ── Severity badge ──────────────────────────────────────────────────── -->
     <div id="severity-badge">
       <div class="badge-label">Overall Severity</div>
       <div class="badge-value" id="sev-val"></div>
-      <div class="badge-conf" id="sev-conf"></div>
+      <div class="badge-conf"  id="sev-conf"></div>
     </div>
 
+    <!-- ── Probability bars ────────────────────────────────────────────────── -->
     <div id="prob-bars">
       <h3>Severity breakdown</h3>
       <div class="bar-row">
         <span class="bar-label">Minor</span>
-        <div class="bar-track">
-          <div class="bar-fill" id="b-minor" style="background:#2ecc71"></div>
-        </div>
+        <div class="bar-track"><div class="bar-fill" id="b-minor"    style="background:#2ecc71"></div></div>
         <span class="bar-pct" id="p-minor"></span>
       </div>
       <div class="bar-row">
         <span class="bar-label">Moderate</span>
-        <div class="bar-track">
-          <div class="bar-fill" id="b-moderate" style="background:#f39c12"></div>
-        </div>
+        <div class="bar-track"><div class="bar-fill" id="b-moderate" style="background:#f39c12"></div></div>
         <span class="bar-pct" id="p-moderate"></span>
       </div>
       <div class="bar-row">
         <span class="bar-label">Severe</span>
-        <div class="bar-track">
-          <div class="bar-fill" id="b-severe" style="background:#e74c3c"></div>
-        </div>
+        <div class="bar-track"><div class="bar-fill" id="b-severe"   style="background:#e74c3c"></div></div>
         <span class="bar-pct" id="p-severe"></span>
       </div>
     </div>
 
+    <!-- ── Damage detections ───────────────────────────────────────────────── -->
     <div id="damage-section">
       <h2>Damage detected</h2>
       <div id="damage-list"></div>
     </div>
 
+    <!-- ── Car parts affected ──────────────────────────────────────────────── -->
     <div id="parts-section">
       <h2>Car parts affected</h2>
       <div id="parts-list"></div>
     </div>
 
+    <!-- ── Estimate settings bar ───────────────────────────────────────────── -->
+    <div id="estimate-settings">
+      <div class="setting-group">
+        <label>Price List</label>
+        <div class="toggle-group">
+          <button id="btn-client"  class="toggle-btn active">Client</button>
+          <button id="btn-interne" class="toggle-btn">Interne</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <label>Vehicle Model</label>
+        <input
+          id="vehicle-model"
+          type="text"
+          list="vehicle-models-list"
+          placeholder="e.g. Kia Sportage…"
+          class="vehicle-input"
+          autocomplete="off"
+        />
+        <datalist id="vehicle-models-list"></datalist>
+        <span id="size-badge" class="size-badge medium">Medium</span>
+        <span id="vehicle-brand-detected" class="brand-detected"></span>
+      </div>
+    </div>
+
+    <!-- ── Repair estimate ─────────────────────────────────────────────────── -->
+    <div id="estimate-section">
+      <div class="estimate-header">
+        <h2>💰 Repair Estimate</h2>
+        <span id="estimate-list-label" class="list-label"></span>
+      </div>
+
+      <div id="unknown-parts-warn" class="unknown-warn"></div>
+
+      <div id="estimate-items"></div>
+
+      <div class="estimate-totals">
+        <div class="total-row">
+          <span>Subtotal (excl. VAT)</span>
+          <span id="est-subtotal">—</span>
+        </div>
+        <div class="total-row vat-row">
+          <span>VAT (15%)</span>
+          <span id="est-vat">—</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>TOTAL</span>
+          <span id="est-total">—</span>
+        </div>
+      </div>
+
+      <p class="estimate-note">
+        ⚠️ Forfait LEAL 2025 — excl. parts replacement, consumables (Rs.750) &amp; sundries (Rs.575).
+      </p>
+    </div>
+
   </main>
 
-  <script src="src/app.js"></script>
+  <script type="module" src="pricing/index.js"></script>
+  <script defer src="src/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -116,5 +168,4 @@
   </script>
 
 </body>
-
 </html>
