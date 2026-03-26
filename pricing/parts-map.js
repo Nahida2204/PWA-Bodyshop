@@ -1,3 +1,7 @@
+// pricing/parts-map.js
+// ─────────────────────────────────────────────────────────────────────────────
+// Maps raw detector class names to canonical price keys (price-tables.js).
+//
 // THREE SOURCES:
 //   main.pt      → MAIN_DETECTION_MAP   (part + optional severity hint)
 //   car_part.pt  → PART_REGION_MAP      (exact class names from model)

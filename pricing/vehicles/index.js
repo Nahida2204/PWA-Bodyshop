@@ -21,7 +21,7 @@ const _INDEX = new Map();
 
 for (const brand of BRANDS) {
   for (const model of brand.models) {
-    const entry = { brand: brand.displayName, size: model.size };
+    const entry = { brand: brand.displayName, size: model.size, labourTier: model.labourTier ?? "standard" };
 
     _INDEX.set(model.name.toLowerCase(), entry);
 
@@ -36,7 +36,7 @@ for (const brand of BRANDS) {
  * Tries exact match first, then substring scan.
  *
  * @param {string} input  e.g. "Kia Sportage", "sportage", "EV6"
- * @returns {{ brand: string, size: 'medium'|'large' }|null}
+ * @returns {{ brand: string, size: 'medium'|'large', labourTier: 'standard'|'ev' }|null}
  */
 export function resolveVehicle(input) {
   if (!input || typeof input !== 'string') return null;
@@ -64,6 +64,7 @@ export function listAllModels() {
       brand: brand.displayName,
       name: m.name,
       size: m.size,
+      labourTier: m.labourTier ?? 'standard',
     }))
   );
 }

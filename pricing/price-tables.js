@@ -1,27 +1,171 @@
 // pricing/price-tables.js
 // ─────────────────────────────────────────────────────────────────────────────
-// LEAL Group Bodyshop – FORFAITS CARROSSERIE PEINTURE 2025
-// All prices in MUR, excl. VAT.
-// Applicable from 01 April 2025.
+// LEAL Group Bodyshop — DETAILS MO FORFAITS RÉPARATION / PEINTURE
+// Source: LEAL CO LTD BODYSHOP 01.06.2020 + Labour Rates April 2025
 //
-// Structure:
-//   PRICE_TABLES[listType][partKey][size][damageLevel]
+// PRICING MODEL (FRU-based):
+//   Each part has three FRU values:
+//     dp  — Déplacer/Placer  (remove & refit)    → billed at LEV1 rate
+//     r   — Réparation       (panel beating)      → billed at LEV2 rate
+//     p   — Peinture         (paint)              → billed at LEV1 rate
 //
-//   listType    : 'client' | 'interne'
-//   partKey     : canonical part identifier (see parts-map.js)
-//   size        : 'medium' (Taille Moyenne) | 'large' (Grande Taille)
-//   damageLevel : 'leger' (Dommages Léger) | 'moyen' (Dommages Moyen)
+//   Cost = (dp × LEV1) + (r × LEV2) + (p × LEV1)
 //
-// TO UPDATE PRICES: edit the numbers below.
-// TO ADD A NEW PART: add the same key to both 'client' and 'interne',
-//   then register the detector → key mapping in parts-map.js.
+// LABOUR RATES (MUR per FRU, excl. VAT) — April 2025:
+//   Standard Kia/Mitsubishi/GWM/Haval:
+//     LEV1 = 175   (Body Rep LEV1 — dismantling, glazing, upholstery, paint)
+//     LEV2 = 225   (Body Rep LEV2 — panel beating, plastic repairs, structural)
+//
+//   EV / Hybrid / Luxury (Kia EV5, EV6, EV9):
+//     LEV1 = 225
+//     LEV2 = 255
+//
+// LEGACY FORFAIT PRICES (flat rate, from 2025 forfait sheet):
+//   Kept for side-by-side comparison.
+//   Structure: FORFAIT[listType][partKey][size][damageLevel] = MUR excl. VAT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const PRICE_TABLES = {
+export const VAT_RATE = 0.15;
 
+
+// ── Labour rates ──────────────────────────────────────────────────────────────
+
+export const LABOUR_RATES = {
+  // Standard Kia / Mitsubishi / GWM / Haval
+  standard: { lev1: 175, lev2: 225 },
+  // EV / Hybrid / Luxury — Kia EV5, EV6, EV9
+  ev:       { lev1: 225, lev2: 255 },
+};
+
+/**
+ * Resolve labour rates for a vehicle.
+ * @param {'standard'|'ev'} labourTier
+ * @returns {{ lev1: number, lev2: number }}
+ */
+export function getLabourRates(labourTier = 'standard') {
+  return LABOUR_RATES[labourTier] ?? LABOUR_RATES.standard;
+}
+
+
+// ── FRU tables ────────────────────────────────────────────────────────────────
+// Structure: FRU_TABLES[size][damageLevel][partKey] = { dp, r, p }
+//
+// size        : 'medium' (Taille Moyenne) | 'large' (Grande Taille)
+// damageLevel : 'leger' | 'moyen'
+// dp, r, p    : FRU values (Flat Rate Units, 12 FRU = 1 hour)
+
+export const FRU_TABLES = {
+  medium: {
+    leger: {
+      front_bumper:  { dp: 12, r:  3, p: 27 },
+      bonnet:        { dp:  6, r:  3, p: 36 },
+      front_fender:  { dp:  9, r:  3, p: 24 },
+      front_door:    { dp: 12, r:  3, p: 30 },
+      rear_door:     { dp: 12, r:  3, p: 30 },
+      rear_fender:   { dp:  6, r:  3, p: 30 },
+      rear_bumper:   { dp:  9, r:  3, p: 27 },
+      trunk:         { dp:  9, r:  3, p: 30 },
+      roof:          { dp:  9, r:  3, p: 42 },
+      sill:          { dp:  0, r:  3, p: 15 },
+      mirror:        { dp:  3, r:  3, p:  6 },
+      wheel_rim:     { dp:  4, r:  6, p: 15 },
+      spot_repair:   { dp:  2, r:  3, p: 20 },
+      paint_touchup: { dp:  2, r:  0, p:  9 },
+    },
+    moyen: {
+      front_bumper:  { dp: 15, r: 24, p: 33 },
+      bonnet:        { dp:  6, r: 24, p: 42 },
+      front_fender:  { dp:  9, r: 24, p: 30 },
+      front_door:    { dp: 12, r: 24, p: 36 },
+      rear_door:     { dp: 12, r: 24, p: 36 },
+      rear_fender:   { dp:  6, r: 24, p: 36 },
+      rear_bumper:   { dp: 12, r: 24, p: 30 },
+      trunk:         { dp:  9, r: 24, p: 36 },
+      roof:          { dp: 18, r: 24, p: 42 },
+      sill:          { dp:  0, r: 24, p: 18 },
+      mirror:        { dp:  3, r: 24, p:  6 },   // mirror moyen = same FRU, higher labour cost
+      wheel_rim:     { dp:  4, r:  6, p: 15 },
+      spot_repair:   { dp:  2, r:  3, p: 20 },
+      paint_touchup: { dp:  2, r:  0, p:  9 },
+    },
+  },
+
+  large: {
+    leger: {
+      front_bumper:  { dp: 18, r:  3, p: 33 },
+      bonnet:        { dp:  9, r:  3, p: 42 },
+      front_fender:  { dp:  9, r:  3, p: 30 },
+      front_door:    { dp: 15, r:  3, p: 36 },
+      rear_door:     { dp: 15, r:  3, p: 36 },
+      rear_fender:   { dp:  9, r:  3, p: 36 },
+      rear_bumper:   { dp: 12, r:  3, p: 30 },
+      trunk:         { dp: 12, r:  3, p: 36 },
+      roof:          { dp:  9, r:  3, p: 54 },
+      sill:          { dp:  0, r:  3, p: 18 },
+      mirror:        { dp:  3, r:  3, p:  6 },
+      wheel_rim:     { dp:  4, r:  6, p: 15 },
+      spot_repair:   { dp:  2, r:  3, p: 20 },
+      paint_touchup: { dp:  2, r:  0, p: 12 },
+    },
+    moyen: {
+      front_bumper:  { dp: 21, r: 24, p: 36 },
+      bonnet:        { dp: 12, r: 24, p: 48 },
+      front_fender:  { dp: 12, r: 24, p: 36 },
+      front_door:    { dp: 18, r: 24, p: 42 },
+      rear_door:     { dp: 18, r: 24, p: 42 },
+      rear_fender:   { dp: 12, r: 24, p: 39 },
+      rear_bumper:   { dp: 15, r: 24, p: 36 },
+      trunk:         { dp: 15, r: 24, p: 39 },
+      roof:          { dp: 18, r: 24, p: 48 },
+      sill:          { dp:  0, r: 24, p: 24 },
+      mirror:        { dp:  3, r: 24, p:  6 },
+      wheel_rim:     { dp:  4, r:  6, p: 15 },
+      spot_repair:   { dp:  2, r:  3, p: 20 },
+      paint_touchup: { dp:  2, r:  0, p: 12 },
+    },
+  },
+};
+
+
+// ── Calculate FRU-based price ─────────────────────────────────────────────────
+
+/**
+ * Calculate the MUR cost for a part using FRU rates.
+ *
+ * @param {string}           partKey      e.g. 'front_bumper'
+ * @param {'leger'|'moyen'}  damageLevel
+ * @param {'medium'|'large'} size
+ * @param {'standard'|'ev'}  labourTier
+ *
+ * @returns {{
+ *   dp_cost:   number,   D/P operation cost
+ *   r_cost:    number,   R  operation cost
+ *   p_cost:    number,   P  operation cost
+ *   total:     number,   total excl. VAT
+ *   fru:       { dp, r, p }
+ *   rates:     { lev1, lev2 }
+ * } | null}
+ */
+export function calcFruPrice(partKey, damageLevel, size, labourTier = 'standard') {
+  const fru = FRU_TABLES[size]?.[damageLevel]?.[partKey];
+  if (!fru) return null;
+
+  const rates   = getLabourRates(labourTier);
+  const dp_cost = fru.dp * rates.lev1;
+  const r_cost  = fru.r  * rates.lev2;
+  const p_cost  = fru.p  * rates.lev1;
+  const total   = dp_cost + r_cost + p_cost;
+
+  return { dp_cost, r_cost, p_cost, total, fru, rates };
+}
+
+
+// ── Legacy forfait prices (2025 flat rates) ───────────────────────────────────
+// Kept for side-by-side comparison only.
+// Structure: FORFAIT[listType][partKey][size][damageLevel] = MUR excl. VAT
+
+export const FORFAIT = {
   client: {
-    //                          ── MEDIUM ──────────────  ── LARGE ───────────
-    //  partKey              leger      moyen              leger      moyen
     front_bumper:  { medium: { leger:  9229, moyen: 14864 }, large: { leger: 11701, moyen: 16603 } },
     bonnet:        { medium: { leger: 10569, moyen: 15813 }, large: { leger: 12564, moyen: 18343 } },
     front_fender:  { medium: { leger:  7993, moyen: 13122 }, large: { leger:  9516, moyen: 15180 } },
@@ -37,7 +181,6 @@ export const PRICE_TABLES = {
     wheel_rim:     { medium: { leger:  5750, moyen:  5750 }, large: { leger:  5750, moyen:  5750 } },
     spot_repair:   { medium: { leger:  6325, moyen:  6325 }, large: { leger:  6325, moyen:  6325 } },
   },
-
   interne: {
     front_bumper:  { medium: { leger:  7533, moyen: 12018 }, large: { leger:  9528, moyen: 13403 } },
     bonnet:        { medium: { leger:  8711, moyen: 12920 }, large: { leger: 10344, moyen: 14973 } },
@@ -54,33 +197,26 @@ export const PRICE_TABLES = {
     wheel_rim:     { medium: { leger:  5175, moyen:  5175 }, large: { leger:  5175, moyen:  5175 } },
     spot_repair:   { medium: { leger:  5463, moyen:  5463 }, large: { leger:  5463, moyen:  5463 } },
   },
-
 };
 
-/**
- * Human-readable labels for each part key.
- * Used in estimate UI and PDF reports.
- */
+
+// ── Labels ────────────────────────────────────────────────────────────────────
+
 export const PART_LABELS = {
   front_bumper:  'Front Bumper (P/Chocs AV)',
   rear_bumper:   'Rear Bumper (P/Chocs AR)',
-  bonnet:        'Bonnet / Hood (Capot Moteur)',
+  bonnet:        'Bonnet / Hood (Capot)',
   front_fender:  'Front Fender (Aile AV)',
   rear_fender:   'Rear Fender (Aile AR)',
   front_door:    'Front Door (Porte AV)',
   rear_door:     'Rear Door (Porte AR)',
   trunk:         'Trunk / Boot (Coffre)',
   roof:          'Roof (Pavillon)',
-  sill:          'Sill / Rocker Panel (Bas de Caisse)',
+  sill:          'Sill / Rocker (Bas de Caisse)',
   paint_touchup: 'Paint Touch-up (Raccord Peinture)',
-  mirror:        'Mirror (Coque Rétroviseur)',
+  mirror:        'Mirror (Rétroviseur)',
   wheel_rim:     'Wheel Rim (Jante)',
   spot_repair:   'Spot Repair (sans démontage)',
-};
-
-export const LIST_LABELS = {
-  client:  'CLIENT LEAL GROUP',
-  interne: 'INTERNE LEAL Co Ltd',
 };
 
 export const SIZE_LABELS = {
@@ -89,8 +225,16 @@ export const SIZE_LABELS = {
 };
 
 export const DAMAGE_LABELS = {
-  leger: 'Dommages Léger',
-  moyen: 'Dommages Moyen',
+  leger: 'Dommage Léger',
+  moyen: 'Dommage Moyen',
 };
 
-export const VAT_RATE = 0.15;
+export const LIST_LABELS = {
+  client:  'CLIENT LEAL GROUP',
+  interne: 'INTERNE LEAL Co Ltd',
+};
+
+export const LABOUR_TIER_LABELS = {
+  standard: 'Kia / Standard',
+  ev:       'EV / Hybrid / Luxury',
+};

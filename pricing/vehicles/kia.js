@@ -1,27 +1,40 @@
-// TO ADD A NEW MODEL:
-//   1. Add it to the `models` array below with correct `size`.
-//   2. Add any alternate names/spellings in `aliases`.
+// pricing/vehicles/kia.js
+// ─────────────────────────────────────────────────────────────────────────────
+// Kia model definitions.
+// labourTier: 'standard' → LEV1 Rs175 / LEV2 Rs225
+//             'ev'       → LEV1 Rs225 / LEV2 Rs255  (EV5, EV6, EV9)
+// ─────────────────────────────────────────────────────────────────────────────
 
 const KIA = {
-  brand: 'kia',
+  brand:       'kia',
   displayName: 'Kia',
 
-  // Canonical model list
   models: [
     // ── Medium (Taille Moyenne) ──────────────────────────────────────────────
-    { name: 'picanto',      size: 'medium', aliases: ['morning'] },
-    { name: 'rio',          size: 'medium', aliases: ['pride'] },
-    { name: 'stonic',       size: 'medium', aliases: [] },
-    { name: 'soul',         size: 'medium', aliases: [] },
-    { name: 'niro',         size: 'medium', aliases: ['niro ev', 'niro hybrid', 'niro phev'] },
-    { name: 'sportage',     size: 'medium', aliases: [] },         // compact SUV → medium
+    { name: 'picanto',   size: 'medium', labourTier: 'standard', aliases: ['morning'] },
+    { name: 'rio',       size: 'medium', labourTier: 'standard', aliases: ['pride'] },
+    { name: 'stonic',    size: 'medium', labourTier: 'standard', aliases: [] },
+    { name: 'soul',      size: 'medium', labourTier: 'standard', aliases: [] },
+    { name: 'ceed',      size: 'medium', labourTier: 'standard', aliases: ["cee'd", 'proceed'] },
+    { name: 'xceed',     size: 'medium', labourTier: 'standard', aliases: [] },
+    { name: 'niro',      size: 'medium', labourTier: 'standard', aliases: ['niro hybrid', 'niro phev'] },
+    { name: 'sportage',  size: 'medium', labourTier: 'standard', aliases: [] },
+    { name: 'seltos',    size: 'medium', labourTier: 'standard', aliases: [] },
 
     // ── Large (Grande Taille) ────────────────────────────────────────────────
-    { name: 'sorento',      size: 'large',  aliases: [] },
-    { name: 'carnival',     size: 'large',  aliases: ['sedona'] },
-    { name: 'EV6',          size: 'large',  aliases: ['EV 6'] },
-    { name: 'EV9',          size: 'large',  aliases: ['EV 9'] },
-    
+    { name: 'sorento',   size: 'large',  labourTier: 'standard', aliases: [] },
+    { name: 'telluride', size: 'large',  labourTier: 'standard', aliases: [] },
+    { name: 'carnival',  size: 'large',  labourTier: 'standard', aliases: ['sedona'] },
+    { name: 'stinger',   size: 'large',  labourTier: 'standard', aliases: [] },
+    { name: 'carens',    size: 'large',  labourTier: 'standard', aliases: [] },
+    { name: 'k5',        size: 'large',  labourTier: 'standard', aliases: ['optima'] },
+    { name: 'k8',        size: 'large',  labourTier: 'standard', aliases: ['cadenza'] },
+
+    // ── EV / Hybrid — higher labour rate ─────────────────────────────────────
+    { name: 'ev5',       size: 'medium', labourTier: 'ev', aliases: ['ev 5'] },
+    { name: 'ev6',       size: 'large',  labourTier: 'ev', aliases: ['ev 6'] },
+    { name: 'ev9',       size: 'large',  labourTier: 'ev', aliases: ['ev 9'] },
+    { name: 'niro ev',   size: 'medium', labourTier: 'ev', aliases: ['niro electric'] },
   ],
 };
 

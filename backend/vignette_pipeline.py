@@ -375,49 +375,65 @@ def scan_vignette(img: Image.Image) -> dict:
         yolo    = _get_yolo()
         reader  = _get_reader()
 
-        # Multi-variant YOLO detection
+        # ── YOLO detection (try progressively lower thresholds) ─────────────
+        crop = None
+        conf = 0.0
         all_boxes, all_confs = [], []
-        for v_img in [img_bgr]:          # add more variants here if needed
-            res = yolo(v_img, conf=0.05, verbose=False)[0]
-            all_boxes.extend(res.boxes.xyxy.cpu().numpy().tolist())
-            all_confs.extend(res.boxes.conf.cpu().numpy().tolist())
+
+        for threshold in [0.25, 0.10, 0.05, 0.01]:
+            res = yolo(img_bgr, conf=threshold, verbose=False)[0]
+            bs  = res.boxes.xyxy.cpu().numpy().tolist()
+            cs  = res.boxes.conf.cpu().numpy().tolist()
+            print(f"  YOLO conf={threshold}  ->  {len(bs)} detection(s)  {[round(c,3) for c in cs]}")
+            all_boxes.extend(bs)
+            all_confs.extend(cs)
+            if bs:
+                break  # found something, stop lowering threshold
 
         boxes, confs = _nms(all_boxes, all_confs)
 
-        if len(boxes) == 0:
-            return {
-                "success": False,
-                "error":   "No vignette detected in image. Try a clearer photo.",
-                **_empty_fields(),
-            }
+        if len(boxes) > 0:
+            best_idx     = int(np.argmax(confs))
+            x1,y1,x2,y2 = map(int, boxes[best_idx])
+            conf         = float(confs[best_idx])
+            pad          = 15
+            crop = img_bgr[
+                max(0, y1-pad) : min(img_bgr.shape[0], y2+pad),
+                max(0, x1-pad) : min(img_bgr.shape[1], x2+pad),
+            ]
+            print(f"  Vignette crop: {x1},{y1} -> {x2},{y2}  conf={conf:.3f}")
+        else:
+            # Fallback: no detection — OCR the whole image
+            # Handles dashboard shots where card is not isolated
+            print("  No YOLO detection — falling back to full-image OCR")
+            crop = img_bgr
+            conf = 0.0
 
-        # Use highest-confidence detection
-        best_idx = int(np.argmax(confs))
-        box      = boxes[best_idx]
-        conf     = float(confs[best_idx])
-
-        x1,y1,x2,y2 = map(int, box)
-        pad = 10
-        crop = img_bgr[
-            max(0, y1-pad) : min(img_bgr.shape[0], y2+pad),
-            max(0, x1-pad) : min(img_bgr.shape[1], x2+pad),
-        ]
-
-        # OCR
+        # ── OCR ───────────────────────────────────────────────────────────────
         raw_texts = _best_ocr(crop, reader)
+        print(f"  OCR words: {len(raw_texts)}")
+        for _, text, c in raw_texts:
+            print(f"    [{c:.2f}] {text}")
+
         if not raw_texts:
             return {
                 "success": False,
-                "error":   "Vignette detected but OCR failed. Try better lighting.",
+                "error":   "Could not read any text. Try a clearer, well-lit photo.",
                 **_empty_fields(),
             }
 
-        # Field extraction
+        # ── Field extraction ──────────────────────────────────────────────────
         fields = _extract_fields(raw_texts)
 
+        has_useful = any(fields.get(k) for k in
+                         ("vin", "make", "model", "policy_no", "registration",
+                          "make_model_raw", "chassis_no"))
+
         return {
-            "success":              True,
-            "error":                None,
+            "success":              has_useful,
+            "error":                None if has_useful else
+                                    "Could not extract vehicle details. "
+                                    "Try a closer, flatter photo of the vignette.",
             "detection_confidence": conf,
             **fields,
         }

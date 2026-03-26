@@ -183,7 +183,7 @@ def run_pipeline(img: Image.Image) -> dict:
 
     # ── Stage 1: severity + main.pt on full image ─────────────────────────────
     s1_severity   = classify_severity(img)
-    mb            = dedup(main_model(img_np, conf=0.10, iou=0.4, verbose=False)[0].boxes)
+    mb            = dedup(main_model(img_np, conf=0.07, iou=0.4, verbose=False)[0].boxes)
     s1_detections = yolo_to_list(mb, main_model.names)
 
     triggers = [d for d in s1_detections if d['type'] in TRIGGER_CLASSES]
@@ -222,7 +222,7 @@ def run_pipeline(img: Image.Image) -> dict:
         crop_severity = classify_severity(crop_pil)
 
         # vehide.pt on crop (offset boxes back to full-image coords)
-        vb          = dedup(vehide_model(crop_np, conf=0.10, iou=0.4, verbose=False)[0].boxes)
+        vb          = dedup(vehide_model(crop_np, conf=0.08, iou=0.4, verbose=False)[0].boxes)
         vehide_dets = yolo_to_list(vb, vehide_model.names, offset=(ox, oy))
 
         # Filter all_parts to only those that overlap with this trigger region
@@ -244,11 +244,33 @@ def run_pipeline(img: Image.Image) -> dict:
             vdet['on_part']     = part_name
             vdet['overlap_pct'] = overlap
 
+        # Skip completely empty regions (no vehide detections)
+        if not vehide_dets:
+            continue
+
+        # Use the MORE SEVERE of crop vs full-image severity.
+        # Crop is better for localised damage; full-image catches overall context.
+        # Never downgrade a high-severity crop just because the full image is minor.
+        SEVERITY_RANK = {'minor': 0, 'moderate': 1, 'severe': 2}
+        crop_rank     = SEVERITY_RANK.get(crop_severity['class'], 0)
+        s1_rank       = SEVERITY_RANK.get(s1_severity['class'], 0)
+        if s1_rank > crop_rank:
+            crop_severity = s1_severity   # full image is worse — use it
+        # else keep crop_severity (localised damage is worse than overall)
+
+        # Deduplicate region_parts by name (car_part.pt can detect same part twice)
+        seen_part_names = set()
+        unique_parts = []
+        for p in region_parts:
+            if p['name'] not in seen_part_names:
+                seen_part_names.add(p['name'])
+                unique_parts.append(p)
+
         stage2.append({
             'triggered_by': trig,
             'severity':     crop_severity,
             'damages':      vehide_dets,
-            'parts':        region_parts,   # parts relevant to this region
+            'parts':        unique_parts,
         })
 
     return {
