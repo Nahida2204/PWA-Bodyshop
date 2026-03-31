@@ -1,11 +1,14 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-import uvicorn, io, asyncio, logging, time, traceback
+import uvicorn, io, asyncio, logging, time, traceback, os, re
 from PIL import Image, UnidentifiedImageError
 from pipeline import run_pipeline
-from vignette_pipeline import scan_vignette
+from vignette_pipeline import (
+    scan_vignette, _clean_vin, _decode_vin, _find_vin
+)
 from concurrent.futures import ThreadPoolExecutor
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -16,6 +19,10 @@ logging.basicConfig(
 )
 log = logging.getLogger("app")
 
+# ── Image storage folder ──────────────────────────────────────────────────────
+IMAGES_DIR = os.path.join(os.path.dirname(__file__), "inspection_images")
+os.makedirs(IMAGES_DIR, exist_ok=True)
+
 # ── Shared thread pool ────────────────────────────────────────────────────────
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pipeline")
 
@@ -24,13 +31,13 @@ _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pipeline")
 async def lifespan(app: FastAPI):
     log.info("🚀 Server starting up")
     yield
-    log.info("🛑 Shutting down — closing thread pool")
+    log.info("🛑 Shutting down")
     _executor.shutdown(wait=False)
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="PWA Bodyshop — Damage Detection API",
-    version="2.0.0",
+    version="3.0.0",
     lifespan=lifespan,
 )
 
@@ -43,27 +50,26 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-MAX_FILE_BYTES = 20 * 1024 * 1024   # 20 MB
+# Serve saved inspection images statically
+app.mount("/inspection-images", StaticFiles(directory=IMAGES_DIR), name="images")
+
+MAX_FILE_BYTES = 20 * 1024 * 1024
 
 
-# ── Shared helpers ────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-async def _read_image(file: UploadFile) -> Image.Image:
+async def _read_image(file: UploadFile) -> tuple[Image.Image, bytes]:
     if file.content_type and not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=415,
-            detail=f"Expected an image file, got '{file.content_type}'",
-        )
+        raise HTTPException(status_code=415,
+            detail=f"Expected image, got '{file.content_type}'")
     contents = await file.read()
     if len(contents) > MAX_FILE_BYTES:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large ({len(contents)//1024} KB). Max 20 MB.",
-        )
+        raise HTTPException(status_code=413,
+            detail=f"File too large ({len(contents)//1024} KB). Max 20 MB.")
     try:
-        return Image.open(io.BytesIO(contents)).convert("RGB")
+        return Image.open(io.BytesIO(contents)).convert("RGB"), contents
     except UnidentifiedImageError:
-        raise HTTPException(status_code=422, detail="Could not decode image file.")
+        raise HTTPException(status_code=422, detail="Could not decode image.")
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"Image decode error: {e}")
 
@@ -82,12 +88,8 @@ def health():
 # ── /scan-vignette ────────────────────────────────────────────────────────────
 @app.post("/scan-vignette", tags=["vignette"])
 async def scan_vignette_endpoint(file: UploadFile = File(...)):
-    """
-    Step 1 — scan the vehicle vignette (insurance card).
-    Returns decoded vehicle info: make, model, year, vehicle_size, VIN, etc.
-    Call this BEFORE /predict.
-    """
-    img = await _read_image(file)
+    """Scan insurance vignette image, return decoded vehicle info."""
+    img, _ = await _read_image(file)
     log.info("🪪 Vignette — %s  %dx%d", file.filename or "upload", img.width, img.height)
 
     t0 = time.perf_counter()
@@ -95,27 +97,98 @@ async def scan_vignette_endpoint(file: UploadFile = File(...)):
         result = await _run_in_pool(scan_vignette, img)
     except Exception:
         log.error("Vignette error:\n%s", traceback.format_exc())
-        raise HTTPException(status_code=500,
-            detail="Vignette processing failed — check server logs.")
+        raise HTTPException(status_code=500, detail="Vignette processing failed.")
 
     elapsed = time.perf_counter() - t0
-    log.info("%s Vignette %.2fs — make=%s model=%s year=%s size=%s",
-        "✅" if result.get("success") else "❌", elapsed,
-        result.get("make"), result.get("model"),
-        result.get("year"), result.get("vehicle_size"),
-    )
+    log.info("%s Vignette %.2fs — %s %s %s",
+        "✅" if result.get("success") else "⚠️", elapsed,
+        result.get("make"), result.get("model"), result.get("year"))
     return JSONResponse(content=result)
+
+
+# ── /decode-vin ───────────────────────────────────────────────────────────────
+@app.get("/decode-vin", tags=["vignette"])
+async def decode_vin_endpoint(vin: str):
+    """
+    Decode a VIN using the same logic as the vignette pipeline.
+
+    Accepts:
+      KNADBSI8LN6669278        full 17-char VIN
+      KNAD-BSI8-LN66-69278     dashes/spaces stripped automatically
+      KNA0BS18LN6669278        OCR noise corrected (O->0, I->1 at pos 11-16)
+      KNADBSI8LN6              partial — make + model decoded, year if pos 9 present
+    """
+    raw = vin.strip().upper()
+    if not raw:
+        raise HTTPException(status_code=422, detail="VIN is required.")
+
+    stripped = re.sub(r"[^A-Z0-9]", "", raw)
+    if len(stripped) < 3:
+        raise HTTPException(status_code=422,
+            detail="Enter at least the first 3 characters of the VIN.")
+
+    result_vin = stripped
+    decoded    = {"make": None, "model": None, "year": None, "vehicle_size": None}
+
+    # Pass 1: _clean_vin + _decode_vin directly (mirrors chassis_raw path)
+    candidate = _clean_vin(stripped) if len(stripped) >= 17 else stripped
+    decoded   = _decode_vin(candidate.ljust(17, "X"))
+    result_vin = stripped
+
+    # Pass 2: _find_vin on the stripped string as a single OCR token
+    if not any(decoded.get(k) for k in ("make", "model")):
+        found = _find_vin([([0, 0, 0, 0], stripped, 0.9)])
+        if found:
+            decoded    = _decode_vin(found)
+            result_vin = found
+
+    # Pass 3: _find_vin on space-separated segments (e.g. "KNAD BSI8 LN6669278")
+    if not any(decoded.get(k) for k in ("make", "model")) and " " in raw:
+        tokens = [([0, 0, 0, 0], seg, 0.9) for seg in raw.split()]
+        found  = _find_vin(tokens)
+        if found:
+            decoded    = _decode_vin(found)
+            result_vin = found
+
+    # Pass 4: concatenate segments and retry as full VIN
+    if not any(decoded.get(k) for k in ("make", "model")) and " " in raw:
+        concat = re.sub(r"[^A-Z0-9]", "", raw)
+        if len(concat) >= 17:
+            cleaned    = _clean_vin(concat[:17])
+            decoded    = _decode_vin(cleaned)
+            result_vin = cleaned
+
+    has_data = any(decoded.get(k) for k in ("make", "model", "year"))
+
+    return JSONResponse(content={
+        "success": has_data,
+        "vin":     result_vin,
+        "error":   None if has_data else (
+            "Could not identify make or model. "
+            "Check the VIN or use the manual entry tab."
+        ),
+        **decoded,
+    })
 
 
 # ── /predict ──────────────────────────────────────────────────────────────────
 @app.post("/predict", tags=["inference"])
-async def predict(file: UploadFile = File(...)):
-    """
-    Step 2 — run the full damage detection pipeline.
-    Returns stage1 severity, stage2 per-region damage + parts.
-    """
-    img = await _read_image(file)
+async def predict(
+    file:         UploadFile = File(...),
+    vehicle_data: str        = Query(default=None,
+        description="JSON-encoded vignette result from /scan-vignette"),
+):
+    """Run damage pipeline and return results."""
+    img, contents = await _read_image(file)
     log.info("📥 Damage — %s  %dx%d", file.filename or "upload", img.width, img.height)
+
+    import json
+    vehicle = None
+    if vehicle_data:
+        try:
+            vehicle = json.loads(vehicle_data)
+        except Exception:
+            pass
 
     t0 = time.perf_counter()
     try:
@@ -127,14 +200,65 @@ async def predict(file: UploadFile = File(...)):
 
     elapsed  = time.perf_counter() - t0
     n_stage2 = len(result.get("stage2", []))
-    log.info("✅ Damage %.2fs — severity=%s  regions=%d",
-        elapsed,
-        result.get("stage1", {}).get("severity", {}).get("class", "?"),
-        n_stage2,
+    severity = result.get("stage1", {}).get("severity", {}).get("class", "?")
+    log.info("✅ Pipeline %.2fs — severity=%s  regions=%d", elapsed, severity, n_stage2)
+
+    return JSONResponse(content=result)
+
+
+# ── /total-loss ───────────────────────────────────────────────────────────────
+@app.get("/total-loss", tags=["vehicles"])
+def total_loss_endpoint(
+    model:          str = Query(...,            description="e.g. Seltos"),
+    vehicle_year:   int = Query(...,            description="Year of registration e.g. 2022"),
+    repair_estimate:int = Query(...,            description="FRU repair total excl. VAT (MUR)"),
+    accident_year:  int = Query(default=None,   description="Year of accident (defaults to current year)"),
+):
+    """
+    Calculate pre-accident value and total loss decision using model average price.
+
+    Pre-accident value = avg_showroom_price × (0.85 ^ age_years)  [15% reducing balance]
+    Total loss if repair_estimate >= 60% of pre-accident value.
+    Uses the average showroom price across all variants of the model.
+    """
+    from vehicle_prices import get_average_price, total_loss_decision
+
+    from vehicle_prices import list_models
+    avg = get_average_price(model)
+
+    # Fuzzy fallback — try substring match if exact not found
+    if not avg:
+        model_lower = model.lower()
+        all_models  = list_models()
+        match = next((m for m in all_models if model_lower in m.lower()
+                      or m.lower() in model_lower), None)
+        if match:
+            avg = get_average_price(match)
+
+    if not avg:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success":      False,
+                "error":        f"Model '{model}' not found in price list. "
+                                f"Available: {', '.join(list_models())}",
+                "is_total_loss": None,
+                "decision":     "UNKNOWN",
+            }
+        )
+
+    result = total_loss_decision(
+        repair_estimate_excl_vat = repair_estimate,
+        showroom_price           = avg["avg_showroom_price"],
+        vehicle_year             = vehicle_year,
+        accident_year            = accident_year,
     )
+    result["model"]       = avg["model"]
+    result["price_basis"] = "average showroom price"
     return JSONResponse(content=result)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False, log_level="info")
+    uvicorn.run("app:app", host="0.0.0.0", port=8000,
+                reload=False, log_level="info")

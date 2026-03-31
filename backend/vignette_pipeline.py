@@ -68,8 +68,7 @@ KIA_MODELS = {
 
 # Models that map to LARGE size (Grande Taille) for pricing
 KIA_LARGE_MODELS = {
-    "Sorento", "Carnival", "Stinger", "EV6", "EV9",
-    "K5", "K8", "Telluride",
+    "Sorento", "Carnival", "Sportage", "EV6", "EV9"
 }
 
 DIGIT_CORRECTIONS = {

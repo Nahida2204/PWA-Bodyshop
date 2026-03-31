@@ -1,0 +1,16 @@
+model,avg_showroom_price,variant_count,size,labour_tier
+Carens,1755000,6,large,standard
+Carnival,3073800,5,large,standard
+EV3,2194000,2,medium,ev
+EV5,2865000,3,medium,ev
+EV9,5075000,2,large,ev
+K2700,953500,4,large,standard
+Niro,2113000,1,medium,ev
+Pegas,1127500,2,medium,standard
+Picanto,977400,5,medium,standard
+Seltos,1815286,7,medium,standard
+Sonet,1520000,3,medium,standard
+Sorento,3214667,3,large,standard
+Sportage,2536000,5,medium,standard
+Stonic,1526667,3,medium,standard
+Tasman,3359500,2,large,standard
