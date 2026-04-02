@@ -18,7 +18,7 @@ from pathlib import Path
 # ── Model paths ───────────────────────────────────────────────────────────────
 import os
 BASE        = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWA-Bodyshop\PWA-Bodyshop\models"
-YOLO_PATH   = os.path.join(BASE, "vignette.pt")   # your vignette YOLO model
+YOLO_PATH   = os.path.join(BASE, "vignette_2.pt")   # your vignette YOLO model
 
 # ── Lazy imports (heavy libs only loaded if this module is used) ──────────────
 _yolo_model  = None
