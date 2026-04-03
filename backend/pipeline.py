@@ -115,7 +115,7 @@ def classify_severity(img_bgr: np.ndarray) -> dict:
     """
     Run severity on original and preprocessed variant.
     Takes the worst (highest) severity class across both.
-    Falls back gracefully if either variant fails.
+    Falls back if either variant fails.
     """
     variants = [img_bgr, preprocess(img_bgr)]
     best_class = 'minor'

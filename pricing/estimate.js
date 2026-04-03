@@ -299,7 +299,9 @@ export function buildEstimate(pipelineResult, {
       vehicleSize, listType, labourTier,
     );
     for (const item of lineItems) {
-      const key = `${item.partKey}__${item.damageLevel}__${item.note}`;
+      // partKey + note: allows 'localised' + 'additional' for same part (Scenario C)
+      // but blocks same part appearing twice as 'generic' from two photos
+      const key = `${item.partKey}__${item.note === 'additional' ? 'additional' : 'main'}`;
       if (globalSeen.has(key)) continue;
       globalSeen.add(key);
       allLineItems.push(item);

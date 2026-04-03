@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f5f7fb" />
   <title>Bodyshop | AI Damage Assessment System</title>
-
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="images/logo.jpg" />
   <link rel="icon" href="images/logo.jpg" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="src/style.css" />
 </head>
 <body>
@@ -29,111 +26,51 @@
               <circle cx="12" cy="12" r="2.5"/>
             </svg>
           </div>
-
           <div class="brand-text">
-            <span class="brand-title">Bodyshop Assessment Portal</span>
+            <span class="brand-title">Bodyshop Assessment Augmented Tool</span>
             <span class="brand-subtitle">AI-powered vehicle damage inspection and repair estimation</span>
           </div>
         </div>
-
         <div class="brand-badge">Professional Evaluation System</div>
       </div>
     </header>
-
-    <section class="hero-strip">
-      <div class="hero-content">
-        <p class="hero-kicker">Academic · Professional · Structured</p>
-        <h1>Vehicle Damage Analysis Platform</h1>
-        <p class="hero-text">
-          A formal inspection workspace for vignette capture, damage analysis,
-          severity assessment, affected part identification, and quotation support.
-        </p>
-      </div>
-    </section>
 
     <nav class="tab-bar">
       <button id="main-tab" class="tab-btn active">Inspection Workflow</button>
       <button id="history-tab" class="tab-btn">Inspection History</button>
     </nav>
 
+    <!-- History panel -->
     <div id="history-panel" style="display:none">
       <main class="page-main">
         <section class="panel-card">
           <div class="panel-head">
             <p class="step-label">History</p>
             <h2 class="section-title">Recent Inspections</h2>
-            <p class="section-text">
-              View previously analysed cases and reopen saved assessment records.
-            </p>
+            <p class="section-text">View previously analysed cases and reopen saved assessment records.</p>
           </div>
           <div id="history-list"></div>
         </section>
       </main>
     </div>
 
+    <!-- Main panel -->
     <div id="main-panel">
       <main class="page-main">
 
-        <section class="panel-card intro-card">
-          <div class="panel-head">
-            <p class="step-label">System Overview</p>
-            <h2 class="section-title">AI Damage Assessment Workflow</h2>
-            <p class="section-text">
-              Follow the guided inspection sequence below to register the vehicle,
-              upload damage evidence, review severity results, and generate a repair estimate.
-            </p>
-          </div>
-
-          <div class="overview-grid">
-            <div class="overview-item">
-              <span class="overview-num">01</span>
-              <div>
-                <strong>Vehicle Identification</strong>
-                <p>Scan or skip vignette capture to identify make, model and year.</p>
-              </div>
-            </div>
-            <div class="overview-item">
-              <span class="overview-num">02</span>
-              <div>
-                <strong>Damage Submission</strong>
-                <p>Upload a vehicle image or take a photo directly from the device camera.</p>
-              </div>
-            </div>
-            <div class="overview-item">
-              <span class="overview-num">03</span>
-              <div>
-                <strong>Severity Review</strong>
-                <p>Inspect classifications, probabilities and affected structural regions.</p>
-              </div>
-            </div>
-            <div class="overview-item">
-              <span class="overview-num">04</span>
-              <div>
-                <strong>Quotation Support</strong>
-                <p>Review parts, labour assumptions and total repair estimation values.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
+        <!-- Step 1: Vignette -->
         <section id="vig-step" class="panel-card">
           <div class="panel-head">
             <p class="step-label">Step 01</p>
             <h2 class="section-title">Vehicle Vignette Identification</h2>
-            <p class="section-text">
-              Capture the insurance vignette to automatically infer vehicle make,
-              model, year and related reference information.
-            </p>
+            <p class="section-text">Capture the insurance vignette to automatically infer vehicle make, model, year and related reference information.</p>
           </div>
-
           <div class="vig-box">
             <div class="vig-box-text">
               <strong>Scan vehicle vignette</strong>
               <span>Use a clear image of the insurance card for automatic vehicle recognition.</span>
             </div>
-
             <input type="file" id="vig-input" accept="image/*" capture="environment" style="display:none" />
-
             <div class="vig-actions">
               <button class="btn-primary" id="vig-btn">Scan Vignette</button>
               <button class="btn-ghost-sm" id="vig-skip">Skip This Step</button>
@@ -141,20 +78,78 @@
           </div>
         </section>
 
+        <!-- Vignette result (populated by JS after successful scan) -->
         <div id="vig-result"></div>
 
+        <!-- Vignette confirm card (shown after manual/VIN entry) -->
+        <div id="vig-confirm" style="display:none" class="vig-card vig-confirm-card">
+          <div class="vig-vehicle" id="vc-vehicle"></div>
+          <div class="vig-meta">
+            <span class="vig-size-tag medium" id="vc-size-tag">MEDIUM</span>
+          </div>
+          <div id="vc-vin-wrap" style="display:none" class="vig-vin" id="vc-vin"></div>
+        </div>
+
+        <!-- Vignette fallback panel (shown when scan fails or user skips) -->
+        <div id="vig-fallback" style="display:none" class="vig-fallback-card">
+          <div id="vf-error-msg" class="vig-fallback-error" style="display:none"></div>
+          <div class="vig-fallback-tabs">
+            <button class="vig-tab active" id="vf-tab-vin"    onclick="switchVigTab('vin')">Enter VIN</button>
+            <button class="vig-tab"        id="vf-tab-manual" onclick="switchVigTab('manual')">Select manually</button>
+            <button class="vig-tab"        onclick="completeVigFallback(null)">Skip</button>
+          </div>
+          <!-- VIN panel -->
+          <div id="vf-vin-panel">
+            <p class="vig-fallback-hint">Enter the VIN from the dashboard or registration document.</p>
+            <div class="vig-fallback-row">
+              <input id="vf-vin-input" type="text" maxlength="17"
+                     placeholder="e.g. KNADBSI8LN6669278"
+                     class="vig-fallback-input"
+                     style="text-transform:uppercase"
+                     oninput="this.value=this.value.toUpperCase()"
+                     onkeydown="if(event.key==='Enter') decodeVIN()" />
+              <button class="btn-secondary vig-fallback-btn" onclick="decodeVIN()">Decode</button>
+            </div>
+            <div id="vf-vin-result" class="vig-fallback-decoded" style="display:none"></div>
+          </div>
+          <!-- Manual panel -->
+          <div id="vf-manual-panel" style="display:none">
+            <div class="vig-fallback-fields">
+              <div class="vig-fallback-field">
+                <label>Make</label>
+                <select id="vf-make" class="vig-fallback-select" onchange="onMakeChange(this.value)">
+                  <option value="">Select make&hellip;</option>
+                </select>
+              </div>
+              <div class="vig-fallback-field">
+                <label>Model</label>
+                <select id="vf-model" class="vig-fallback-select" disabled>
+                  <option value="">Select model&hellip;</option>
+                </select>
+              </div>
+              <div class="vig-fallback-field">
+                <label>Year</label>
+                <input id="vf-year" type="number" min="2000" max="2030"
+                       placeholder="2024" class="vig-fallback-input vig-year-input" />
+              </div>
+            </div>
+            <button class="btn-primary vig-fallback-btn" onclick="applyManualEntry()">Confirm vehicle</button>
+          </div>
+        </div><!-- /vig-fallback -->
+
+        <!-- Step 2: Damage -->
         <section id="damage-step" class="panel-card" style="display:none">
           <div class="panel-head">
             <p class="step-label">Step 02</p>
-            <h2 class="section-title">Damage Evidence Upload and Analysis</h2>
+            <h2 class="section-title">Damage Evidence Upload</h2>
             <p class="section-text">
-              Submit an image for AI-based damage assessment. The system will identify
-              severity, parts impacted and an indicative repair estimate.
+              Add one or more photos of the damaged vehicle. Each photo is analysed
+              independently and results are combined into a single estimate.
             </p>
           </div>
 
           <input type="file" id="file-in" accept="image/*" style="display:none" />
-          <input type="file" id="cam-in" accept="image/*" capture="environment" style="display:none" />
+          <input type="file" id="cam-in"  accept="image/*" capture="environment" style="display:none" />
 
           <div id="drop-zone">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -163,123 +158,263 @@
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
               <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
-            <p>Drag and drop an inspection image here</p>
+            <p>Drag and drop inspection images here</p>
           </div>
 
           <div class="action-grid">
-            <button class="btn-primary" id="upload-btn">Upload Inspection Image</button>
+            <button class="btn-primary"   id="upload-btn">Upload Image</button>
             <button class="btn-secondary" id="cam-btn">Capture Photo</button>
           </div>
 
-          <div id="preview-wrap">
-            <img id="preview" alt="preview" />
-            <canvas id="overlay"></canvas>
+          <div id="photo-queue" style="display:none">
+            <p class="queue-label">Photos queued for analysis</p>
+            <div id="queue-grid" class="queue-grid"></div>
+            <button class="btn-add-more" id="add-more-btn" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/>
+              </svg>
+              Add another photo
+            </button>
           </div>
 
           <div id="error-box"></div>
 
-          <div id="dmg-loading">
-            <div class="spinner"></div>
-            <p>Processing inspection image...</p>
-          </div>
-
           <div class="action-stack">
-            <button class="btn-primary" id="analyse-btn" disabled>Analyse Damage</button>
             <button class="btn-ghost" id="reset-btn">Start New Inspection</button>
           </div>
 
-          <div id="severity-badge">
-            <div class="sev-label">Overall severity assessment</div>
-            <div class="sev-value" id="sev-val"></div>
-            <div class="sev-conf" id="sev-conf"></div>
-          </div>
+          <!-- Combined results -->
+          <div id="combined-results" style="display:none">
 
-          <div id="prob-bars">
-            <p class="section-mono">Severity Probability Distribution</p>
-
-            <div class="bar-row">
-              <span class="bar-name">Minor</span>
-              <div class="bar-track"><div class="bar-fill" id="b-minor"></div></div>
-              <span class="bar-pct" id="p-minor"></span>
+            <div id="severity-badge">
+              <div class="sev-label">Overall severity assessment</div>
+              <div class="sev-value" id="sev-val"></div>
+              <div class="sev-conf"  id="sev-conf"></div>
             </div>
 
-            <div class="bar-row">
-              <span class="bar-name">Moderate</span>
-              <div class="bar-track"><div class="bar-fill" id="b-moderate"></div></div>
-              <span class="bar-pct" id="p-moderate"></span>
-            </div>
-
-            <div class="bar-row">
-              <span class="bar-name">Severe</span>
-              <div class="bar-track"><div class="bar-fill" id="b-severe"></div></div>
-              <span class="bar-pct" id="p-severe"></span>
-            </div>
-          </div>
-
-          <div id="damage-section">
-            <p class="step-label">Detections</p>
-            <div id="damage-list"></div>
-          </div>
-
-          <div id="parts-section">
-            <p class="step-label">Parts Affected</p>
-            <div id="parts-list"></div>
-          </div>
-
-          <div id="estimate-settings">
-            <div class="setting-group">
-              <span class="setting-label">Quotation list</span>
-              <div class="toggle-group">
-                <button id="btn-client" class="toggle-btn active">Client</button>
-                <button id="btn-interne" class="toggle-btn">Interne</button>
+            <div id="prob-bars">
+              <p class="section-mono">Severity Probability Distribution</p>
+              <div class="bar-row">
+                <span class="bar-name">Minor</span>
+                <div class="bar-track"><div class="bar-fill" id="b-minor"></div></div>
+                <span class="bar-pct" id="p-minor"></span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-name">Moderate</span>
+                <div class="bar-track"><div class="bar-fill" id="b-moderate"></div></div>
+                <span class="bar-pct" id="p-moderate"></span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-name">Severe</span>
+                <div class="bar-track"><div class="bar-fill" id="b-severe"></div></div>
+                <span class="bar-pct" id="p-severe"></span>
               </div>
             </div>
 
-            <div class="setting-group vehicle-setting">
-              <span class="setting-label">Vehicle model</span>
-              <input id="vehicle-model" type="text" list="vehicle-models-list"
-                     placeholder="Example: Kia Sportage"
-                     class="vehicle-input" autocomplete="off" />
-              <datalist id="vehicle-models-list"></datalist>
-              <span id="size-badge" class="size-badge medium">Medium</span>
-              <span id="vehicle-brand-detected" class="brand-detected"></span>
-            </div>
-          </div>
-
-          <div id="estimate-section">
-            <div class="estimate-header">
-              <span class="estimate-title">Repair Estimate Summary</span>
-              <span id="estimate-list-label" class="estimate-list-label"></span>
+            <div id="damage-section">
+              <p class="step-label">Detections</p>
+              <div id="damage-list"></div>
             </div>
 
-            <div id="unknown-parts-warn" class="unknown-warn"></div>
-            <div id="estimate-items"></div>
-
-            <div class="estimate-totals">
-              <div class="total-row"><span>Subtotal excl. VAT</span><span id="est-subtotal">—</span></div>
-              <div class="total-row vat-row"><span>VAT 15%</span><span id="est-vat">—</span></div>
-              <div class="total-row grand-total"><span>Total (FRU)</span><span id="est-total">—</span></div>
-              <div id="est-forfait-compare" class="forfait-total-compare" style="display:none"></div>
+            <div id="parts-section">
+              <p class="step-label">Parts Affected</p>
+              <div id="parts-list"></div>
             </div>
 
-            <p class="estimate-note">
-              Forfait LEAL 2025 — excluding parts replacement, consumables Rs 750 and sundries Rs 575 excl. VAT.
-            </p>
-          </div>
+            <div id="estimate-settings">
+              <div class="setting-group">
+                <span class="setting-label">Quotation list</span>
+                <div class="toggle-group">
+                  <button id="btn-client"  class="toggle-btn active">Client</button>
+                  <button id="btn-interne" class="toggle-btn">Interne</button>
+                </div>
+              </div>
+              <div class="setting-group vehicle-setting">
+                <span class="setting-label">Vehicle model</span>
+                <input id="vehicle-model" type="text" list="vehicle-models-list"
+                       placeholder="Example: Kia Sportage" class="vehicle-input" autocomplete="off" />
+                <datalist id="vehicle-models-list"></datalist>
+                <span id="size-badge" class="size-badge medium">Medium</span>
+                <span id="vehicle-brand-detected" class="brand-detected"></span>
+              </div>
+              <div class="setting-group">
+                <span class="setting-label">Year</span>
+                <input id="vehicle-year-input" type="number" min="2010" max="2030"
+                       placeholder="e.g. 2022" class="vehicle-year-input"
+                       oninput="onYearInput(this.value)" />
+              </div>
+            </div>
+
+            <!-- Manual damage editor -->
+            <div id="manual-damage-section" style="display:none" class="panel-card manual-damage-card">
+              <div class="manual-damage-head">
+                <span class="section-title" style="font-size:1rem">Adjust Damage Assessment</span>
+                <button class="btn-add-damage" onclick="openAddDamage()">
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/>
+                  </svg>
+                  Add damage
+                </button>
+              </div>
+              <div id="manual-damage-list"></div>
+              <div id="add-damage-form" style="display:none" class="add-damage-form">
+                <div class="add-damage-row">
+                  <div class="add-damage-field">
+                    <label>Part</label>
+                    <select id="add-part" class="add-damage-select">
+                      <option value="">Select part&hellip;</option>
+                      <option value="front_bumper">Front Bumper</option>
+                      <option value="rear_bumper">Rear Bumper</option>
+                      <option value="bonnet">Bonnet / Hood</option>
+                      <option value="front_fender">Front Fender (Aile AV)</option>
+                      <option value="rear_fender">Rear Fender (Aile AR)</option>
+                      <option value="front_door">Front Door (Porte AV)</option>
+                      <option value="rear_door">Rear Door (Porte AR)</option>
+                      <option value="trunk">Trunk / Boot</option>
+                      <option value="roof">Roof (Pavillon)</option>
+                      <option value="sill">Sill / Rocker (Bas de Caisse)</option>
+                      <option value="mirror">Mirror (Rétroviseur)</option>
+                      <option value="wheel_rim">Wheel Rim (Jante)</option>
+                      <option value="spot_repair">Spot Repair</option>
+                      <option value="paint_touchup">Paint Touch-up</option>
+                    </select>
+                  </div>
+                  <div class="add-damage-field">
+                    <label>Damage type</label>
+                    <select id="add-type" class="add-damage-select">
+                      <option value="dent">Dent</option>
+                      <option value="scratch">Scratch</option>
+                      <option value="tear">Tear</option>
+                      <option value="broken_light">Broken Light</option>
+                      <option value="broken_glass">Broken Glass</option>
+                      <option value="hole">Hole</option>
+                    </select>
+                  </div>
+                  <div class="add-damage-field">
+                    <label>Severity</label>
+                    <select id="add-severity" class="add-damage-select">
+                      <option value="minor">Minor</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="severe">Severe</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="add-damage-actions">
+                  <button class="btn-primary add-confirm-btn" onclick="confirmAddDamage()">Add to estimate</button>
+                  <button class="btn-ghost-sm" onclick="cancelAddDamage()">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="estimate-section">
+              <div class="estimate-header">
+                <span class="estimate-title">Repair Estimate Summary</span>
+                <span id="estimate-list-label" class="estimate-list-label"></span>
+              </div>
+              <div id="unknown-parts-warn" class="unknown-warn"></div>
+              <div id="estimate-items"></div>
+              <div class="estimate-totals">
+                <p class="totals-method-label">FRU — calculated from labour rates</p>
+                <div class="total-row"><span>Subtotal excl. VAT</span><span id="est-subtotal">—</span></div>
+                <div class="total-row vat-row"><span>VAT 15%</span><span id="est-vat">—</span></div>
+                <div class="total-row grand-total"><span>Total (FRU)</span><span id="est-total">—</span></div>
+                <div id="est-forfait-compare" class="forfait-compare-block" style="display:none"></div>
+              </div>
+              <p class="estimate-note">
+                Forfait LEAL 2025 — excluding parts replacement, consumables Rs 750 and sundries Rs 575 excl. VAT.
+              </p>
+            </div>
+
+            <!-- Save Inspection -->
+            <div id="save-section" style="display:none" class="save-section">
+              <button class="btn-save" id="save-btn" onclick="saveInspection()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Inspection
+              </button>
+              <span id="save-status" class="save-status"></span>
+            </div>
+
+            <!-- Economic Loss Decision Card -->
+            <div id="total-loss-panel" style="display:none" class="tl-card">
+
+              <!-- Verdict -->
+              <div class="tl-verdict-area">
+                <p class="tl-kicker">Economic Loss Assessment</p>
+                <div id="tl-decision" class="tl-verdict">—</div>
+                <p id="tl-note" class="tl-verdict-note"></p>
+              </div>
+
+              <!-- Stats -->
+              <div class="tl-divider"></div>
+              <div class="tl-stats">
+                <div class="tl-stat">
+                  <span class="tl-stat-label">Showroom Price</span>
+                  <span id="tl-showroom" class="tl-stat-value">—</span>
+                  <span id="tl-depreciation" class="tl-stat-sub">—</span>
+                </div>
+                <div class="tl-stat tl-stat-highlight">
+                  <span class="tl-stat-label">Pre-Accident Value</span>
+                  <span id="tl-pav" class="tl-stat-value">—</span>
+                  <span class="tl-stat-sub">After depreciation</span>
+                </div>
+                <div class="tl-stat">
+                  <span class="tl-stat-label">Repair Estimate</span>
+                  <span id="tl-repair" class="tl-stat-value">—</span>
+                  <span class="tl-stat-sub">Excl. VAT</span>
+                </div>
+                <div class="tl-stat">
+                  <span class="tl-stat-label">Loss Threshold</span>
+                  <span id="tl-threshold" class="tl-stat-value">—</span>
+                  <span class="tl-stat-sub">60% of PAV</span>
+                </div>
+              </div>
+
+              <!-- Bar -->
+              <div class="tl-bar-section">
+                <div class="tl-bar-track">
+                  <div id="tl-bar-fill" class="tl-bar-fill"></div>
+                  <div class="tl-bar-marker"></div>
+                </div>
+                <div class="tl-bar-labels">
+                  <span>0%</span>
+                  <span id="tl-pct" class="tl-pct-val">—</span>
+                  <span class="tl-bar-threshold-label">60% threshold</span>
+                </div>
+              </div>
+
+              <!-- Spare parts -->
+              <div id="tl-spare-parts-section" style="display:none">
+                <div class="tl-divider"></div>
+                <div class="tl-spare-head">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                  </svg>
+                  <span>Parts Requiring Replacement</span>
+                </div>
+                <div id="tl-spare-parts" class="tl-spare-list"></div>
+              </div>
+
+            </div><!-- /total-loss-panel -->
+
+          </div><!-- /combined-results -->
         </section>
+
       </main>
-    </div>
+    </div><!-- /main-panel -->
   </div>
 
   <script type="module" src="pricing/index.js"></script>
   <script defer src="src/app.js"></script>
-
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js")
-          .then(() => console.log("SW registered"))
-          .catch(err => console.log("SW error", err));
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
       });
     }
   </script>

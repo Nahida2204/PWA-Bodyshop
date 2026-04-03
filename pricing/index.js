@@ -35,3 +35,6 @@ window.Pricing = {
   FRU_TABLES, FORFAIT, PART_LABELS, LIST_LABELS, SIZE_LABELS,
   DAMAGE_LABELS, LABOUR_RATES, LABOUR_TIER_LABELS, VAT_RATE,
 };
+
+// Signal to app.js that pricing tables are ready
+window.dispatchEvent(new Event('pricing-ready'));

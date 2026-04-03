@@ -1,0 +1,69 @@
+{
+  "id": "AB35FF41",
+  "created_at": "2026-04-02T17:06:48.250422+00:00",
+  "vehicle": {
+    "make": null,
+    "model": "Kia Sportage Hybrid",
+    "year": 2022,
+    "vin": null,
+    "registration": null,
+    "size": "medium"
+  },
+  "severity": "moderate",
+  "estimate": {
+    "listType": "client",
+    "vehicleSize": "medium",
+    "subtotal": 35075,
+    "vat": 5261,
+    "total": 40336,
+    "items": [
+      {
+        "part": "Spot Repair (sans démontage)",
+        "partKey": "spot_repair",
+        "damageType": "broken_glass",
+        "severity": "moderate",
+        "damageLevel": "moyen",
+        "fru_total": 4525,
+        "forfait": 6325,
+        "manual": false
+      },
+      {
+        "part": "Spot Repair (sans démontage)",
+        "partKey": "spot_repair",
+        "damageType": "broken_glass",
+        "severity": "moderate",
+        "damageLevel": "moyen",
+        "fru_total": 4525,
+        "forfait": 6325,
+        "manual": false
+      },
+      {
+        "part": "Front Door (Porte AV)",
+        "partKey": "front_door",
+        "damageType": "dent",
+        "severity": "moderate",
+        "damageLevel": "moyen",
+        "fru_total": 13800,
+        "forfait": 15180,
+        "manual": false
+      },
+      {
+        "part": "Front Fender (Aile AV)",
+        "partKey": "front_fender",
+        "damageType": "dent",
+        "severity": "moderate",
+        "damageLevel": "moyen",
+        "fru_total": 12225,
+        "forfait": 13122,
+        "manual": false
+      }
+    ]
+  },
+  "total_loss": {
+    "decision": "Repairable",
+    "pre_accident_value": "Rs 1,323,808",
+    "repair_estimate": "Rs 35,075",
+    "threshold": "Rs 794,285",
+    "repair_pct_of_pav": "2.6%"
+  }
+}

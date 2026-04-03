@@ -19,9 +19,11 @@ logging.basicConfig(
 )
 log = logging.getLogger("app")
 
-# ── Image storage folder ──────────────────────────────────────────────────────
-IMAGES_DIR = os.path.join(os.path.dirname(__file__), "inspection_images")
-os.makedirs(IMAGES_DIR, exist_ok=True)
+# ── Storage folders ───────────────────────────────────────────────────────────
+IMAGES_DIR      = os.path.join(os.path.dirname(__file__), "inspection_images")
+INSPECTIONS_DIR = os.path.join(os.path.dirname(__file__), "inspections")
+os.makedirs(IMAGES_DIR,      exist_ok=True)
+os.makedirs(INSPECTIONS_DIR, exist_ok=True)
 
 # ── Shared thread pool ────────────────────────────────────────────────────────
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pipeline")
@@ -256,6 +258,95 @@ def total_loss_endpoint(
     result["model"]       = avg["model"]
     result["price_basis"] = "average showroom price"
     return JSONResponse(content=result)
+
+
+# ── /inspections — save ───────────────────────────────────────────────────────
+@app.post("/inspections", tags=["history"])
+async def save_inspection_endpoint(payload: dict):
+    """
+    Save a completed inspection to disk as a JSON file.
+    Called by the frontend Save button after estimate is built.
+
+    Expected payload:
+    {
+      "vehicle":   { make, model, year, vin, registration },
+      "severity":  "moderate",
+      "estimate":  { subtotal, vat, total, listType, items: [...] },
+      "total_loss": { decision, pre_accident_value, repair_pct_of_pav, ... } | null,
+      "image_path": "..." | null
+    }
+    """
+    import uuid, json
+    from datetime import datetime, timezone
+
+    inspection_id = str(uuid.uuid4())[:8].upper()
+    now           = datetime.now(timezone.utc).isoformat()
+
+    record = {
+        "id":         inspection_id,
+        "created_at": now,
+        **payload,
+    }
+
+    path = os.path.join(INSPECTIONS_DIR, f"{inspection_id}.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(record, f, ensure_ascii=False, indent=2)
+
+    log.info("💾 Saved inspection %s — %s %s Rs %s",
+        inspection_id,
+        payload.get("vehicle", {}).get("make", "?"),
+        payload.get("vehicle", {}).get("model", "?"),
+        payload.get("estimate", {}).get("total", "?"),
+    )
+
+    return JSONResponse(content={"id": inspection_id, "created_at": now})
+
+
+# ── /inspections — list ────────────────────────────────────────────────────────
+@app.get("/inspections", tags=["history"])
+def list_inspections_endpoint(limit: int = Query(default=50, ge=1, le=200)):
+    """Return list of saved inspections, newest first (summary only)."""
+    import json, glob
+
+    files = sorted(
+        glob.glob(os.path.join(INSPECTIONS_DIR, "*.json")),
+        key=os.path.getmtime,
+        reverse=True,
+    )[:limit]
+
+    summaries = []
+    for f in files:
+        try:
+            with open(f, encoding="utf-8") as fh:
+                data = json.load(fh)
+            summaries.append({
+                "id":         data.get("id"),
+                "created_at": data.get("created_at"),
+                "vehicle":    data.get("vehicle", {}),
+                "severity":   data.get("severity"),
+                "total":      data.get("estimate", {}).get("total"),
+                "decision":   data.get("total_loss", {}).get("decision") if data.get("total_loss") else None,
+            })
+        except Exception:
+            continue
+
+    return JSONResponse(content=summaries)
+
+
+# ── /inspections/{id} — detail ────────────────────────────────────────────────
+@app.get("/inspections/{inspection_id}", tags=["history"])
+def get_inspection_endpoint(inspection_id: str):
+    """Return full detail for one inspection."""
+    import json
+
+    path = os.path.join(INSPECTIONS_DIR, f"{inspection_id.upper()}.json")
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Inspection not found.")
+
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    return JSONResponse(content=data)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
