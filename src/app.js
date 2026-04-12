@@ -919,17 +919,8 @@ async function saveInspection() {
   if (btn) btn.disabled=true;
   if (status) { status.textContent='Saving…'; status.className='save-status saving'; }
   try {
-    const estimate      = _lastMergedPipeline?window.Pricing?.buildEstimate(_lastMergedPipeline,estimateSettings):null;
-    const VAT           = 0.15;
-    const filteredItems = (estimate?.lineItems??[]).filter(item => !manualRemovals.has(`${item.partKey}__${item.damageType??''}`));
-    const manualPriced  = manualAdditions.map(a => {
-      const dl = a.severity==='minor'?'leger':'moyen';
-      const priced = window.Pricing?.lookupPrices?.(a.partKey,dl,estimateSettings.vehicleSize,estimateSettings.listType,estimateSettings.labourTier);
-      if (!priced) return null;
-      return { part:priced.partLabel, partKey:a.partKey, damageType:a.damageType, severity:a.severity, fru:priced.fru, forfait:priced.forfait, price:priced.fru?.total??0 };
-    }).filter(Boolean);
-    const seenManual = new Set(manualPriced.map(m => m.partKey));
-    const allItems   = [...filteredItems.filter(i => !seenManual.has(i.partKey)),...manualPriced];
+    const VAT      = 0.15;
+    const allItems = _lastAllItems; // already reflects severity overrides, manual additions & removals
 
     let repairSub = 0, replaceSub = 0;
     allItems.forEach(i => {
@@ -941,44 +932,69 @@ async function saveInspection() {
       if (dec === 'replace' && sparePrice !== null) replaceSub += sparePrice;
     });
     const subtotal = repairSub + replaceSub;
-    const vat      = Math.round(subtotal*VAT);
-    const total    = subtotal+vat;
+    const vat      = Math.round(subtotal * VAT);
+    const total    = subtotal + vat;
 
-    // Severity — check stage2 regions too
-    const donePh = photoQueue.filter(e => e.status==='done'&&e.result);
+    // Severity — check stage1 and all stage2 regions
+    const donePh = photoQueue.filter(e => e.status==='done' && e.result);
     let worstSev = 'minor';
     for (const e of donePh) {
-      if (SEV_RANK[e.result.stage1.severity.class]>SEV_RANK[worstSev]) worstSev=e.result.stage1.severity.class;
+      if (SEV_RANK[e.result.stage1.severity.class] > SEV_RANK[worstSev]) worstSev = e.result.stage1.severity.class;
       for (const region of (e.result.stage2??[])) {
-        const cls=region.severity?.class??'minor';
-        if (SEV_RANK[cls]>SEV_RANK[worstSev]) worstSev=cls;
+        const cls = region.severity?.class ?? 'minor';
+        if (SEV_RANK[cls] > SEV_RANK[worstSev]) worstSev = cls;
       }
     }
 
     let totalLossData = null;
     const tlPanel = $('total-loss-panel');
-    if (tlPanel && tlPanel.style.display!=='none') {
-      totalLossData = { decision:$('tl-decision')?.textContent??null, pre_accident_value:$('tl-pav')?.textContent??null, repair_estimate:$('tl-repair')?.textContent??null, threshold:$('tl-threshold')?.textContent??null, repair_pct_of_pav:$('tl-pct')?.textContent??null };
+    if (tlPanel && tlPanel.style.display !== 'none') {
+      totalLossData = {
+        decision:           $('tl-decision')?.textContent  ?? null,
+        pre_accident_value: $('tl-pav')?.textContent       ?? null,
+        repair_estimate:    $('tl-repair')?.textContent    ?? null,
+        threshold:          $('tl-threshold')?.textContent ?? null,
+        repair_pct_of_pav:  $('tl-pct')?.textContent      ?? null,
+      };
     }
 
     const payload = {
-      vehicle: { make:vehicleInfo?.make??null, model:vehicleInfo?.model??$('vehicle-model')?.value?.trim()??null,
-        year:(vehicleInfo?.year??parseInt($('vehicle-year-input')?.value))||null, vin:vehicleInfo?.vin??null,
-        registration:vehicleInfo?.registration??null, size:estimateSettings.vehicleSize },
+      vehicle: {
+        make:         vehicleInfo?.make  ?? null,
+        model:        vehicleInfo?.model ?? $('vehicle-model')?.value?.trim() ?? null,
+        year:         (vehicleInfo?.year ?? parseInt($('vehicle-year-input')?.value)) || null,
+        vin:          vehicleInfo?.vin          ?? null,
+        registration: vehicleInfo?.registration ?? null,
+        size:         estimateSettings.vehicleSize,
+      },
       severity: worstSev,
-      estimate: { listType:estimateSettings.listType, vehicleSize:estimateSettings.vehicleSize, subtotal, vat, total,
+      estimate: {
+        listType:    estimateSettings.listType,
+        vehicleSize: estimateSettings.vehicleSize,
+        subtotal,
+        vat,
+        total,
         items: allItems.map(i => {
           const itemKey    = `${i.partKey}__${i.damageType??''}`;
           const dec        = partDecisions.get(itemKey) ?? 'repair';
           const sparePrice = sparePartsMap[i.partKey] ?? null;
-          return { part:i.part, partKey:i.partKey, damageType:i.damageType??'',
-            severity:i.severity, damageLevel:i.damageLevel??'',
-            fru_total:i.fru?.total??i.price??0, forfait:i.forfait??null,
-            decision:dec,
-            spare_part_price: dec==='replace' ? sparePrice : null,
-            line_total: dec==='none' ? 0 : dec==='replace' && sparePrice ? (i.fru?.total??i.price??0) + sparePrice : (i.fru?.total??i.price??0),
-            manual:i.manual??false };
-        })
+          const fruCost    = i.fru?.total ?? i.price ?? 0;
+          return {
+            part:             i.part,
+            partKey:          i.partKey,
+            damageType:       i.damageType ?? '',
+            severity:         i.severity,
+            damageLevel:      i.damageLevel ?? '',
+            fru_total:        fruCost,
+            forfait:          i.forfait ?? null,
+            decision:         dec,
+            spare_part_price: dec === 'replace' ? sparePrice : null,
+            line_total:       dec === 'none' ? 0
+                            : dec === 'replace' && sparePrice ? fruCost + sparePrice
+                            : fruCost,
+            manual:           i.manual ?? false,
+          };
+        }),
       },
       total_loss: totalLossData,
     };
