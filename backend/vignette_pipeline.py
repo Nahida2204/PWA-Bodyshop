@@ -1,13 +1,3 @@
-"""
-vignette_pipeline.py
-────────────────────
-Vignette detection, OCR, VIN decode.
-Exposes a single function:  scan_vignette(img: PIL.Image) -> dict
-
-Designed to run in the same FastAPI process as the damage pipeline,
-but completely independent — no shared state.
-"""
-
 import cv2
 import re
 import numpy as np
@@ -39,9 +29,8 @@ def _get_reader():
     return _ocr_reader
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  VIN DATA TABLES
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 KIA_PREFIX = {
     "KNA": "Kia", "KNH": "Kia", "KNC": "Kia",
@@ -76,9 +65,9 @@ DIGIT_CORRECTIONS = {
 }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 #  VIN DECODE
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def _clean_vin(raw: str) -> str:
     raw = re.sub(r"[^A-Z0-9]", "", raw.upper())
@@ -140,9 +129,8 @@ def _decode_vin(vin: str | None) -> dict:
     }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  FIELD EXTRACTION
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def _join(raw_texts):
     return " ".join(t for _, t, _ in raw_texts)
@@ -215,9 +203,9 @@ def _extract_fields(raw_texts: list[tuple]) -> dict:
     }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 #  IMAGE PROCESSING
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def _upscale(img, target_h=600):
     h = img.shape[0]
@@ -344,31 +332,11 @@ def _nms(boxes_list, confs_list, iou_thr=0.4):
     return boxes[keep], confs[keep]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PUBLIC ENTRY POINT
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def scan_vignette(img: Image.Image) -> dict:
-    """
-    Process a vignette photo and return decoded vehicle info.
-
-    Returns:
-    {
-        "success":      bool,
-        "error":        str | None,
-        "vin":          str | None,
-        "make":         str | None,   e.g. "Kia"
-        "model":        str | None,   e.g. "Sportage"
-        "year":         int | None,   e.g. 2022
-        "vehicle_size": str | None,   "medium" | "large"
-        "policy_no":    str | None,
-        "registration": str | None,
-        "chassis_no":   str | None,
-        "expiry_date":  str | None,
-        "insurer":      str | None,
-        "detection_confidence": float | None,
-    }
-    """
+   
     try:
         img_bgr = cv2.cvtColor(np.array(img.convert("RGB")), cv2.COLOR_RGB2BGR)
         yolo    = _get_yolo()

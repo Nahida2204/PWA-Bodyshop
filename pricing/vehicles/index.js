@@ -1,9 +1,3 @@
-// pricing/vehicles/index.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Brand registry. To support a new brand:
-//   1. Create  pricing/vehicles/bmw.js  (copy kia.js as template)
-//   2. Import it below and add it to BRANDS.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import KIA from './kia.js';
 

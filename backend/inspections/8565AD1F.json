@@ -1,0 +1,42 @@
+{
+  "id": "8565AD1F",
+  "created_at": "2026-04-12T12:40:05.738200+00:00",
+  "vehicle": {
+    "make": null,
+    "model": "Kia rio",
+    "year": 2025,
+    "vin": null,
+    "registration": null,
+    "size": "medium"
+  },
+  "severity": "minor",
+  "estimate": {
+    "listType": "client",
+    "vehicleSize": "medium",
+    "subtotal": 7500,
+    "vat": 1125,
+    "total": 8625,
+    "items": [
+      {
+        "part": "Trunk / Boot (Coffre)",
+        "partKey": "trunk",
+        "damageType": "dent",
+        "severity": "minor",
+        "damageLevel": "leger",
+        "fru_total": 7500,
+        "forfait": 9516,
+        "decision": "repair",
+        "spare_part_price": null,
+        "line_total": 7500,
+        "manual": false
+      }
+    ]
+  },
+  "total_loss": {
+    "decision": "Repairable",
+    "pre_accident_value": "Rs 892,500",
+    "repair_estimate": "Rs 13,275",
+    "threshold": "Rs 535,500",
+    "repair_pct_of_pav": "1.5%"
+  }
+}

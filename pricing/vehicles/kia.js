@@ -1,9 +1,3 @@
-// pricing/vehicles/kia.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Kia model definitions.
-// labourTier: 'standard' → LEV1 Rs175 / LEV2 Rs225
-//             'ev'       → LEV1 Rs225 / LEV2 Rs255  (EV5, EV6, EV9)
-// ─────────────────────────────────────────────────────────────────────────────
 
 const KIA = {
   brand:       'kia',

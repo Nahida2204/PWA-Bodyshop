@@ -1,4 +1,4 @@
-// ── CONFIG ────────────────────────────────────────────────────────────────────
+// CONFIG 
 const hostname = location.hostname || '192.168.100.65';
 const API_URL  = (hostname === 'localhost' || hostname === '127.0.0.1')
   ? 'http://127.0.0.1:8000'
@@ -7,7 +7,7 @@ const API_URL  = (hostname === 'localhost' || hostname === '127.0.0.1')
 const MAX_DIM    = 640;
 const TIMEOUT_MS = 180_000;
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
+// ── STATE
 let vehicleInfo      = null;
 let estimateSettings = { listType: 'client', vehicleSize: 'medium', labourTier: 'standard' };
 let manualAdditions  = [];
@@ -20,10 +20,10 @@ let photoQueue       = [];
 let nextPhotoId      = 1;
 let _lastMergedPipeline = null;
 
-// ── SEVERITY RANK ─────────────────────────────────────────────────────────────
+// SEVERITY RANK 
 const SEV_RANK = { minor: 0, moderate: 1, severe: 2 };
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+//  INIT
 document.addEventListener('DOMContentLoaded', () => {
   $('vig-input')?.addEventListener('change', e => e.target.files[0] && scanVignette(e.target.files[0]));
   $('vig-btn')?.addEventListener('click',  () => $('vig-input')?.click());
@@ -53,9 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
 // VIGNETTE
-// ─────────────────────────────────────────────────────────────────────────────
+
 async function scanVignette(file) {
   setVigLoading(true); hideError();
   try {
@@ -174,9 +173,9 @@ function applyVehicleInfo(data) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // SPARE PARTS — fetch prices from CSV via backend
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 async function fetchSparePartsForModel(model) {
   if (!model) { sparePartsMap = {}; return; }
@@ -217,9 +216,9 @@ function renderVignetteCard(data) {
 
 function setVigLoading(on) { const b=$('vig-btn'); if(b) b.disabled=on; }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // PHOTO QUEUE
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function addFiles(fileList) {
   Array.from(fileList).forEach(file => {
@@ -305,9 +304,9 @@ function removePhoto(id) {
   renderQueue(); rebuildCombinedResults();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // COMBINED RESULTS
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function rebuildCombinedResults() {
   const done = photoQueue.filter(e => e.status==='done' && e.result);
@@ -323,7 +322,7 @@ function rebuildCombinedResults() {
 
   const merged = buildMergedPipeline(done);
 
-  // ── FIX 1: Overall severity — stage1 AND all stage2 regions ───────────────
+  //  FIX 1: Overall severity — stage1 AND all stage2 regions 
   let worstSev    = 'minor';
   let worstConf   = 0;
   let worstProbs  = { minor:0, moderate:0, severe:0 };
@@ -383,7 +382,7 @@ function buildMergedPipeline(doneEntries) {
 
   const allRegions = [...partBuckets.values()];
 
-  // ── FIX 3: worst severity includes stage2 regions ─────────────────────────
+  //  FIX 3: worst severity includes stage2 regions 
   let worstSev   = 'minor';
   let worstConf  = 0;
   let worstProbs = { minor:0, moderate:0, severe:0 };
@@ -413,9 +412,9 @@ function buildMergedPipeline(doneEntries) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // RENDER
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function renderSeverityBadge(sev) {
   const badge = $('severity-badge'); if (!badge) return;
@@ -424,7 +423,7 @@ function renderSeverityBadge(sev) {
   setText('sev-conf', `${Math.round(sev.confidence*100)}% confidence`);
   show('severity-badge'); show('prob-bars');
 
-  // ── FIX 2: fallback when probabilities all zero ────────────────────────────
+  //  FIX 2: fallback when probabilities all zero 
   ['minor','moderate','severe'].forEach(c => {
     const probs = sev.probabilities??{};
     const total = Object.values(probs).reduce((s,v) => s+v, 0);
@@ -502,9 +501,8 @@ function renderEstimate(mergedPipeline) {
   refreshEstimate(mergedPipeline);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // MANUAL DAMAGE EDITOR
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 const PART_LABELS_MAP = {
   front_bumper:'Front Bumper', rear_bumper:'Rear Bumper', bonnet:'Bonnet / Hood',
@@ -913,9 +911,8 @@ function populateVehicleAutocomplete() {
   dl.innerHTML = (window.Pricing.listAllModels?.()??[]).map(m => `<option value="${m.brand} ${m.name}">`).join('');
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // SAVE INSPECTION
-// ─────────────────────────────────────────────────────────────────────────────
 
 async function saveInspection() {
   const btn = $('save-btn'); const status = $('save-status');
@@ -997,9 +994,7 @@ async function saveInspection() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RESET
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function reset() {
   photoQueue=[]; nextPhotoId=1; _lastMergedPipeline=null;
@@ -1019,9 +1014,8 @@ function clearCombinedResults() {
   const qg=$('queue-grid'); if(qg) qg.innerHTML='';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // IMAGE RESIZE
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function resizeImage(file, maxDim) {
   return new Promise(resolve => {
@@ -1039,9 +1033,9 @@ function resizeImage(file, maxDim) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // ERROR / HISTORY
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function showError(msg) { const el=$('error-box'); if(el){el.textContent=msg;show('error-box');} }
 function hideError()    { hide('error-box'); }
@@ -1139,9 +1133,9 @@ async function viewInspection(id) {
   } catch(err) { alert(`Could not load inspection: ${err.message}`); }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // UTILS
-// ─────────────────────────────────────────────────────────────────────────────
+
 const $       = id  => document.getElementById(id);
 const setText = (id, val) => { const el=$(id); if(el) el.textContent=val; };
 const show    = id  => { const el=$(id); if(el) el.style.display='block'; };

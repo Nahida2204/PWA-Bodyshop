@@ -1,17 +1,4 @@
-// pricing/parts-map.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Maps raw detector class names to canonical price keys (price-tables.js).
-//
-// THREE SOURCES:
-//   main.pt      → MAIN_DETECTION_MAP   (part + optional severity hint)
-//   car_part.pt  → PART_REGION_MAP      (exact class names from model)
-//   vehide.pt    → VEHIDE_DAMAGE_MAP    (severity hint only, no part info)
-// ─────────────────────────────────────────────────────────────────────────────
 
-
-// ── 1. main.pt classes ────────────────────────────────────────────────────────
-// partKey: null = generic class, fall back to car_part.pt region
-// severityHint: null = trust ResNet; 'leger'|'moyen' = override ResNet
 export const MAIN_DETECTION_MAP = {
 
   // Bumpers

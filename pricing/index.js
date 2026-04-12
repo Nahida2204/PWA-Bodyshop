@@ -1,20 +1,3 @@
-// pricing/index.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Single entry point for the pricing module.
-//
-// Usage in app.js:
-//   import Pricing from './pricing/index.js';
-//
-//   const vehicle  = Pricing.resolveVehicle('Kia Sportage');
-//   // → { brand: 'Kia', size: 'medium' }
-//
-//   const estimate = Pricing.buildEstimate(pipelineResult, {
-//     listType:    'client',
-//     vehicleSize: vehicle?.size ?? 'medium',
-//   });
-//   // → { lineItems: [...], subtotal, vat, total, ... }
-// ─────────────────────────────────────────────────────────────────────────────
-
 export { buildEstimate, lookupPrice, lookupPrices, severityToDamageLevel, formatMUR } from './estimate.js';
 export { resolveVehicle, listAllModels }                                               from './vehicles/index.js';
 export { resolveMainClass, resolvePartRegion, getVehideSeverityHint }                 from './parts-map.js';

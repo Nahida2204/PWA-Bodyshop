@@ -1,30 +1,3 @@
-// pricing/price-tables.js
-// ─────────────────────────────────────────────────────────────────────────────
-// LEAL Group Bodyshop — DETAILS MO FORFAITS RÉPARATION / PEINTURE
-// Source: LEAL CO LTD BODYSHOP 01.06.2020 + Labour Rates April 2025
-//
-// PRICING MODEL (FRU-based):
-//   Each part has three FRU values:
-//     dp  — Déplacer/Placer  (remove & refit)    → billed at LEV1 rate
-//     r   — Réparation       (panel beating)      → billed at LEV2 rate
-//     p   — Peinture         (paint)              → billed at LEV1 rate
-//
-//   Cost = (dp × LEV1) + (r × LEV2) + (p × LEV1)
-//
-// LABOUR RATES (MUR per FRU, excl. VAT) — April 2025:
-//   Standard Kia/Mitsubishi/GWM/Haval:
-//     LEV1 = 175   (Body Rep LEV1 — dismantling, glazing, upholstery, paint)
-//     LEV2 = 225   (Body Rep LEV2 — panel beating, plastic repairs, structural)
-//
-//   EV / Hybrid / Luxury (Kia EV5, EV6, EV9):
-//     LEV1 = 225
-//     LEV2 = 255
-//
-// LEGACY FORFAIT PRICES (flat rate, from 2025 forfait sheet):
-//   Kept for side-by-side comparison.
-//   Structure: FORFAIT[listType][partKey][size][damageLevel] = MUR excl. VAT
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const VAT_RATE = 0.15;
 
 

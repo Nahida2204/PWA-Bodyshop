@@ -1,17 +1,3 @@
-// pricing/estimate.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Estimate builder — FRU-based pricing with legacy forfait comparison.
-//
-// PRIMARY: FRU calculation
-//   cost = (dp × LEV1) + (r × LEV2) + (p × LEV1)
-//   Labour tier: 'standard' (Kia) or 'ev' (EV5/EV6/EV9)
-//
-// COMPARISON: Legacy flat forfait prices shown alongside FRU total
-//
-// SEVERITY → DAMAGE LEVEL:
-//   minor              → léger
-//   moderate / severe  → moyen
-// ─────────────────────────────────────────────────────────────────────────────
 
 import {
   FRU_TABLES, FORFAIT, PART_LABELS, VAT_RATE,

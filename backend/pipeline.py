@@ -105,9 +105,9 @@ def preprocess(img_np: np.ndarray) -> np.ndarray:
     return img_sharp
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 # SEVERITY — run on original + preprocessed, take worst result
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def classify_severity(img_bgr: np.ndarray) -> dict:
     """
@@ -150,9 +150,9 @@ def classify_severity(img_bgr: np.ndarray) -> dict:
     }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 # GEOMETRY HELPERS
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def dedup(boxes, thresh=0.5):
     if boxes is None or len(boxes) == 0:
@@ -222,9 +222,8 @@ def yolo_to_list(boxes, names, offset=(0, 0)):
     return result
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 # MAIN PIPELINE
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def run_pipeline(img: Image.Image) -> dict:
     # Convert to BGR and preprocess once
@@ -232,14 +231,14 @@ def run_pipeline(img: Image.Image) -> dict:
     img_proc = preprocess(img_bgr)   # preprocessed version for detectors
     W, H     = img.size
 
-    # ── Stage 1: severity + main.pt on full image ─────────────────────────────
+    #  Stage 1: severity + main.pt on full image 
     s1_severity   = classify_severity(img_bgr)
 
     mb            = dedup(main_model(img_proc, conf=0.07, iou=0.4, verbose=False)[0].boxes)
     s1_detections = yolo_to_list(mb, main_model.names)
 
     # Triggers: all classes in TRIGGER_CLASSES
-    # Quick lookup for dedup (full map defined later in per-trigger loop)
+  
     TRIGGER_TO_PART_EARLY = {
         'doorouter-dent': 'front_door', 'damaged-door': 'front_door',
         'front-bumper-dent': 'front_bumper', 'damaged-front-bumper': 'front_bumper',
@@ -263,10 +262,10 @@ def run_pipeline(img: Image.Image) -> dict:
     if not triggers:
         triggers = [{'type': 'full_image', 'conf': 1.0, 'box': [0, 0, W, H]}]
 
-    # ── Deduplicate triggers by localised part ────────────────────────────────
-    # If main.pt fires doorouter-dent twice (two detections of same class),
+    
+
     # keep only the highest-confidence one per localised part type.
-    # Generic triggers are kept all (different spatial regions).
+ 
     _seen_localised = {}
     _deduped = []
     for t in triggers:
@@ -281,8 +280,7 @@ def run_pipeline(img: Image.Image) -> dict:
     triggers = _deduped
 
     # ── Localised vs generic trigger classification ───────────────────────────
-    # Maps localised main.pt class → known part name (car_part.pt namespace)
-    # When main.pt names the part directly, we skip vehide+car_part inference
+
     TRIGGER_TO_PART = {
         'doorouter-dent':         'front_door',
         'damaged-door':           'front_door',
@@ -306,8 +304,7 @@ def run_pipeline(img: Image.Image) -> dict:
         'sidemirror-damage':      'left_mirror',
     }
 
-    # car_part.pt runs once on the full image — always.
-    # Needed for both localised regions (extra damage types) and generic regions.
+
     all_parts = []
     pb = dedup(parts_model(img_proc, conf=0.15, iou=0.4, verbose=False)[0].boxes)
     if pb is not None:
@@ -335,9 +332,7 @@ def run_pipeline(img: Image.Image) -> dict:
         is_localised = trigger_part is not None
 
         # ── Run vehide.pt + car_part.pt on every region ──────────────────────
-        # Always run both models to catch damage types main.pt missed.
-        # For localised triggers, we pre-seed the known (type, part) from
-        # main.pt so vehide/car_part results only add NEW damage types.
+     
         crop_proc  = preprocess(crop_bgr)
         vb         = dedup(vehide_model(crop_proc, conf=0.08, iou=0.4,
                                         verbose=False)[0].boxes)
@@ -395,12 +390,7 @@ def run_pipeline(img: Image.Image) -> dict:
             matches = find_all_parts(vdet['box'], all_parts)
 
             if is_localised:
-                # For localised triggers: only accept vehide detections that
-                # genuinely overlap the TRIGGER PART (IoD > 0).
-                # Discard any centroid-fallback matches — these are noise from
-                # vehide seeing a random texture in the crop and landing on
-                # a part that isn't actually damaged (e.g. broken_glass on
-                # front_bumper when the trigger is doorouter-dent).
+                
                 real_matches = [(p, o) for p, o in matches if o > 0 and p == trigger_part]
                 if not real_matches:
                     # No real overlap with trigger part — skip this vehide box

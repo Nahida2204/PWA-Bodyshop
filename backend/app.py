@@ -11,7 +11,7 @@ from vignette_pipeline import (
 )
 from concurrent.futures import ThreadPoolExecutor
 
-# ── Logging ───────────────────────────────────────────────────────────────────
+# Logging 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
@@ -19,17 +19,17 @@ logging.basicConfig(
 )
 log = logging.getLogger("app")
 
-# ── Storage folders ───────────────────────────────────────────────────────────
+#Storage folders 
 IMAGES_DIR      = os.path.join(os.path.dirname(__file__), "inspection_images")
 INSPECTIONS_DIR = os.path.join(os.path.dirname(__file__), "inspections")
 SPARE_PARTS_CSV = os.path.join(os.path.dirname(__file__), "spare_parts_prices.csv")
 os.makedirs(IMAGES_DIR,      exist_ok=True)
 os.makedirs(INSPECTIONS_DIR, exist_ok=True)
 
-# ── Shared thread pool ────────────────────────────────────────────────────────
+# Shared thread pool
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pipeline")
 
-# ── Lifespan ──────────────────────────────────────────────────────────────────
+# Lifespan 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.info(" Server starting up")
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     log.info("Shutting down")
     _executor.shutdown(wait=False)
 
-# ── App ───────────────────────────────────────────────────────────────────────
+# App
 app = FastAPI(
     title="PWA Bodyshop — Damage Detection API",
     version="3.0.0",
@@ -59,7 +59,7 @@ app.mount("/inspection-images", StaticFiles(directory=IMAGES_DIR), name="images"
 MAX_FILE_BYTES = 20 * 1024 * 1024
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+#  Helpers 
 
 async def _read_image(file: UploadFile) -> tuple[Image.Image, bytes]:
     if file.content_type and not file.content_type.startswith("image/"):
@@ -82,13 +82,13 @@ async def _run_in_pool(fn, *args):
     return await loop.run_in_executor(_executor, fn, *args)
 
 
-# ── /health ───────────────────────────────────────────────────────────────────
+#  /health 
 @app.get("/health", tags=["meta"])
 def health():
     return {"status": "ok"}
 
 
-# ── /scan-vignette ────────────────────────────────────────────────────────────
+#  /scan-vignette
 @app.post("/scan-vignette", tags=["vignette"])
 async def scan_vignette_endpoint(file: UploadFile = File(...)):
     """Scan insurance vignette image, return decoded vehicle info."""
@@ -109,7 +109,7 @@ async def scan_vignette_endpoint(file: UploadFile = File(...)):
     return JSONResponse(content=result)
 
 
-# ── /decode-vin ───────────────────────────────────────────────────────────────
+#  /decode-vin 
 @app.get("/decode-vin", tags=["vignette"])
 async def decode_vin_endpoint(vin: str):
     """
@@ -174,7 +174,7 @@ async def decode_vin_endpoint(vin: str):
     })
 
 
-# ── /spare-parts ──────────────────────────────────────────────────────────────
+#/spare-parts 
 @app.get("/spare-parts", tags=["vehicles"])
 def get_spare_parts(model: str = Query(default=None, description="Vehicle model slug e.g. 'sportage'")):
     """
@@ -206,7 +206,7 @@ def get_spare_parts(model: str = Query(default=None, description="Vehicle model 
     return JSONResponse(content=results)
 
 
-# ── /spare-parts/models ───────────────────────────────────────────────────────
+# /spare-parts/models 
 @app.get("/spare-parts/models", tags=["vehicles"])
 def list_spare_parts_models():
     """Return the list of models that have spare parts prices in the CSV."""
@@ -225,7 +225,7 @@ def list_spare_parts_models():
     return JSONResponse(content=seen)
 
 
-# ── /predict ──────────────────────────────────────────────────────────────────
+#  /predict 
 @app.post("/predict", tags=["inference"])
 async def predict(
     file:         UploadFile = File(...),
@@ -260,7 +260,7 @@ async def predict(
     return JSONResponse(content=result)
 
 
-# ── /total-loss ───────────────────────────────────────────────────────────────
+# /total-loss 
 @app.get("/total-loss", tags=["vehicles"])
 def total_loss_endpoint(
     model:          str = Query(...,            description="e.g. Seltos"),
@@ -268,13 +268,10 @@ def total_loss_endpoint(
     repair_estimate:int = Query(...,            description="FRU repair total excl. VAT (MUR)"),
     accident_year:  int = Query(default=None,   description="Year of accident (defaults to current year)"),
 ):
-    """
-    Calculate pre-accident value and total loss decision using model average price.
+    
+    #Calculate pre-accident value and total loss decision using model average price.
 
-    Pre-accident value = avg_showroom_price × (0.85 ^ age_years)  [15% reducing balance]
-    Total loss if repair_estimate >= 60% of pre-accident value.
-    Uses the average showroom price across all variants of the model.
-    """
+    
     from vehicle_prices import get_average_price, total_loss_decision
 
     from vehicle_prices import list_models
@@ -312,7 +309,7 @@ def total_loss_endpoint(
     return JSONResponse(content=result)
 
 
-# ── /inspections — save ───────────────────────────────────────────────────────
+# /inspections — save 
 @app.post("/inspections", tags=["history"])
 async def save_inspection_endpoint(payload: dict):
     """
@@ -354,7 +351,7 @@ async def save_inspection_endpoint(payload: dict):
     return JSONResponse(content={"id": inspection_id, "created_at": now})
 
 
-# ── /inspections — list ────────────────────────────────────────────────────────
+#  /inspections — list 
 @app.get("/inspections", tags=["history"])
 def list_inspections_endpoint(limit: int = Query(default=50, ge=1, le=200)):
     """Return list of saved inspections, newest first (summary only)."""
@@ -385,7 +382,7 @@ def list_inspections_endpoint(limit: int = Query(default=50, ge=1, le=200)):
     return JSONResponse(content=summaries)
 
 
-# ── /inspections/{id} — detail ────────────────────────────────────────────────
+# /inspections/{id} — detail 
 @app.get("/inspections/{inspection_id}", tags=["history"])
 def get_inspection_endpoint(inspection_id: str):
     """Return full detail for one inspection."""
@@ -401,7 +398,7 @@ def get_inspection_endpoint(inspection_id: str):
     return JSONResponse(content=data)
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+#  Entry point
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000,
                 reload=False, log_level="info")
