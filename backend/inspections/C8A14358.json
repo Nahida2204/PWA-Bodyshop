@@ -1,0 +1,55 @@
+{
+  "id": "C8A14358",
+  "created_at": "2026-04-11T12:20:20.388810+00:00",
+  "vehicle": {
+    "make": null,
+    "model": "Kia rio",
+    "year": 2023,
+    "vin": null,
+    "registration": null,
+    "size": "medium"
+  },
+  "severity": "minor",
+  "estimate": {
+    "listType": "client",
+    "vehicleSize": "medium",
+    "subtotal": 13825,
+    "vat": 2074,
+    "total": 15899,
+    "items": [
+      {
+        "part": "Trunk / Boot (Coffre)",
+        "partKey": "trunk",
+        "damageType": "dent",
+        "severity": "minor",
+        "damageLevel": "leger",
+        "fru_total": 7500,
+        "forfait": 9516,
+        "decision": "repair",
+        "spare_part_price": null,
+        "line_total": 7500,
+        "manual": false
+      },
+      {
+        "part": "light_repair",
+        "partKey": "light_repair",
+        "damageType": "broken_light",
+        "severity": "minor",
+        "damageLevel": "moyen",
+        "fru_total": 6325,
+        "forfait": 6325,
+        "decision": "repair",
+        "spare_part_price": null,
+        "line_total": 6325,
+        "manual": false
+      }
+    ]
+  },
+  "total_loss": {
+    "decision": "Repairable",
+    "pre_accident_value": "Rs 644,831",
+    "repair_estimate": "Rs 13,825",
+    "threshold": "Rs 386,899",
+    "repair_pct_of_pav": "2.1%"
+  }
+}

@@ -13,7 +13,7 @@ log = logging.getLogger("pipeline")
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 
 BASE          = r"C:\Users\23052\OneDrive - Middlesex University\Desktop\PWA-Bodyshop\PWA-Bodyshop\models"
-MAIN_PATH     = os.path.join(BASE, "main.pt")
+MAIN_PATH     = os.path.join(BASE,"main.pt")
 VEHIDE_PATH   = os.path.join(BASE, "vehide.pt")
 PARTS_PATH    = os.path.join(BASE, "car_part.pt")
 SEVERITY_PATH = os.path.join(BASE, "resnet50_severity_best.pth")
@@ -66,11 +66,9 @@ severity_tf = A.Compose([
 
 print("✅ All models loaded")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 # PREPROCESSING — applied to each image before inference
 # Reduces glare, colour bias and contrast issues without multi-variant overhead
-# ══════════════════════════════════════════════════════════════════════════════
+
 
 def preprocess(img_np: np.ndarray) -> np.ndarray:
     """
@@ -325,9 +323,7 @@ def run_pipeline(img: Image.Image) -> dict:
     for trig in triggers:
         crop_bgr, (ox, oy) = padded_crop(img_bgr, trig['box'])
 
-        # Severity from the main.pt trigger crop — best available signal for
-        # this damage region. Larger crop than any individual vehide box,
-        # so ResNet has enough context to assess structural deformation.
+    
         # Take worst of trigger-box severity vs full-image severity.
         trig_crop, _  = padded_crop(img_bgr, trig['box'], pad=20)
         trig_severity = classify_severity(trig_crop)

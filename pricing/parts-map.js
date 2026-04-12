@@ -29,8 +29,8 @@ export const MAIN_DETECTION_MAP = {
   'damaged-trunk':           { partKey: 'trunk',        severityHint: null    },
 
   // Doors
-  'damaged-door':            { partKey: 'front_door',   severityHint: null    },
-  'doorouter-dent':          { partKey: 'front_door',   severityHint: null    },
+  'damaged-door':            { partKey: 'door',   severityHint: null    },
+  'doorouter-dent':          { partKey: 'door',   severityHint: null    },
 
   // Fender / Quarter
   'fender-dent':             { partKey: 'front_fender', severityHint: null    },
@@ -51,11 +51,11 @@ export const MAIN_DETECTION_MAP = {
   'damaged-window':          { partKey: 'spot_repair',  severityHint: null    },
   'damaged-windscreen':      { partKey: 'spot_repair',  severityHint: null    },
   'damaged-rear-window':     { partKey: 'spot_repair',  severityHint: null    },
-  'front-windscreen-damage': { partKey: 'spot_repair',  severityHint: null    },
-  'rear-windscreen-damage':  { partKey: 'spot_repair',  severityHint: null    },
-  'headlight-damage':        { partKey: 'spot_repair',  severityHint: null    },
-  'taillight-damage':        { partKey: 'spot_repair',  severityHint: null    },
-  'signlight-damage':        { partKey: 'spot_repair',  severityHint: null    },
+  'front-windscreen-damage': { partKey: 'windshield_repair',  severityHint: null    },
+  'rear-windscreen-damage':  { partKey: 'windshield_repair',  severityHint: null    },
+  'headlight-damage':        { partKey: 'light_repair',  severityHint: null    },
+  'taillight-damage':        { partKey: 'light_repair',  severityHint: null    },
+  'signlight-damage':        { partKey: 'light_repair',  severityHint: null    },
 
   // Generic — no part info, fall back to car_part.pt
   'damaged':                 { partKey: null,            severityHint: null    },
@@ -92,12 +92,12 @@ export const PART_REGION_MAP = {
   'tailgate':           'trunk',       // tailgate and trunk → same price line
 
   // ── Doors ──────────────────────────────────────────────────
-  'front_door':         'front_door',
-  'front_left_door':    'front_door',
-  'front_right_door':   'front_door',
-  'back_door':          'rear_door',
-  'back_left_door':     'rear_door',
-  'back_right_door':    'rear_door',
+  'front_door':         'door',
+  'front_left_door':    'door',
+  'front_right_door':   'door',
+  'back_door':          'door',
+  'back_left_door':     'door',
+  'back_right_door':    'door',
 
   // ── Mirrors ────────────────────────────────────────────────
   'left_mirror':        'mirror',
@@ -107,16 +107,16 @@ export const PART_REGION_MAP = {
   'wheel':              'wheel_rim',
 
   // ── Glass (→ spot repair) ──────────────────────────────────
-  'front_glass':        'spot_repair',
-  'back_glass':         'spot_repair',
+  'front_glass':        'windshield_repair',
+  'back_glass':         'windshield_repair',
 
   // ── Lights (→ spot repair) ─────────────────────────────────
-  'front_light':        'spot_repair',
-  'front_left_light':   'spot_repair',
-  'front_right_light':  'spot_repair',
-  'back_light':         'spot_repair',
-  'back_left_light':    'spot_repair',
-  'back_right_light':   'spot_repair',
+  'front_light':        'light_repair',
+  'front_left_light':   'light_repair',
+  'front_right_light':  'light_repair',
+  'back_light':         'light_repair',
+  'back_left_light':    'light_repair',
+  'back_right_light':   'light_repair',
 
   // ── Generic / unknown ──────────────────────────────────────
   'object':             null,           // detector catch-all → skip pricing
@@ -130,8 +130,8 @@ export const VEHIDE_DAMAGE_MAP = {
   'dent':         { severityHint: null    },
   'scratch':      { severityHint: null    },
   'tear':         { severityHint: 'moyen' },
-  'broken_light': { severityHint: 'moyen' },
-  'broken_glass': { severityHint: 'moyen' },
+  'broken_light': { partKey: 'light_repair',  severityHint: 'moyen' },  
+  'broken_glass': { partKey: 'windshield_repair', severityHint: 'moyen' },
   'hole':         { severityHint: 'moyen' },
 };
 

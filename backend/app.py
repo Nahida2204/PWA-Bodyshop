@@ -22,6 +22,7 @@ log = logging.getLogger("app")
 # ── Storage folders ───────────────────────────────────────────────────────────
 IMAGES_DIR      = os.path.join(os.path.dirname(__file__), "inspection_images")
 INSPECTIONS_DIR = os.path.join(os.path.dirname(__file__), "inspections")
+SPARE_PARTS_CSV = os.path.join(os.path.dirname(__file__), "spare_parts_prices.csv")
 os.makedirs(IMAGES_DIR,      exist_ok=True)
 os.makedirs(INSPECTIONS_DIR, exist_ok=True)
 
@@ -31,9 +32,9 @@ _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="pipeline")
 # ── Lifespan ──────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    log.info("🚀 Server starting up")
+    log.info(" Server starting up")
     yield
-    log.info("🛑 Shutting down")
+    log.info("Shutting down")
     _executor.shutdown(wait=False)
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -171,6 +172,57 @@ async def decode_vin_endpoint(vin: str):
         ),
         **decoded,
     })
+
+
+# ── /spare-parts ──────────────────────────────────────────────────────────────
+@app.get("/spare-parts", tags=["vehicles"])
+def get_spare_parts(model: str = Query(default=None, description="Vehicle model slug e.g. 'sportage'")):
+    """
+    Return spare parts replacement prices for a given vehicle model.
+    Reads from spare_parts_prices.csv next to this file.
+
+    ?model=sportage  → { "front_bumper": { "label": "...", "price": 22000 }, ... }
+    ?model=          → all rows (for admin / autocomplete use)
+    """
+    import csv as _csv
+
+    if not os.path.exists(SPARE_PARTS_CSV):
+        raise HTTPException(status_code=503, detail="Spare parts price file not found on server.")
+
+    model_key = (model or "").strip().lower()
+    results   = {}
+
+    with open(SPARE_PARTS_CSV, newline="", encoding="utf-8") as f:
+        reader = _csv.DictReader(f)
+        for row in reader:
+            if model_key and row["model"].strip().lower() != model_key:
+                continue
+            results[row["part_key"].strip()] = {
+                "label": row["part_label"].strip(),
+                "price": int(row["price_mur"]),
+                "model": row["model"].strip(),
+            }
+
+    return JSONResponse(content=results)
+
+
+# ── /spare-parts/models ───────────────────────────────────────────────────────
+@app.get("/spare-parts/models", tags=["vehicles"])
+def list_spare_parts_models():
+    """Return the list of models that have spare parts prices in the CSV."""
+    import csv as _csv
+
+    if not os.path.exists(SPARE_PARTS_CSV):
+        return JSONResponse(content=[])
+
+    seen = []
+    with open(SPARE_PARTS_CSV, newline="", encoding="utf-8") as f:
+        for row in _csv.DictReader(f):
+            m = row["model"].strip().lower()
+            if m not in seen:
+                seen.append(m)
+
+    return JSONResponse(content=seen)
 
 
 # ── /predict ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,144 @@
+model,part_key,part_label,price_mur
+picanto,front_bumper,Front Bumper (P/Chocs AV),12500
+picanto,rear_bumper,Rear Bumper (P/Chocs AR),11000
+picanto,bonnet,Bonnet / Hood (Capot),18000
+picanto,front_fender,Front Fender (Aile AV),10500
+picanto,rear_fender,Rear Fender (Aile AR),12000
+picanto,door,Door Panel (Porte),16000
+picanto,trunk,Trunk Lid (Coffre),14500
+picanto,roof,Roof Panel (Pavillon),35000
+picanto,sill,Sill / Rocker (Bas de Caisse),7500
+picanto,mirror,Side Mirror Assembly (Rétroviseur),6500
+picanto,wheel_rim,Alloy Wheel / Rim (Jante),9000
+picanto,windshield_repair,Windscreen (Pare-brise),14000
+picanto,light_repair,Headlight / Taillight Assembly,8000
+stonic,front_bumper,Front Bumper (P/Chocs AV),16500
+stonic,rear_bumper,Rear Bumper (P/Chocs AR),14500
+stonic,bonnet,Bonnet / Hood (Capot),24000
+stonic,front_fender,Front Fender (Aile AV),14000
+stonic,rear_fender,Rear Fender (Aile AR),16000
+stonic,door,Door Panel (Porte),22000
+stonic,trunk,Trunk Lid (Coffre),20000
+stonic,roof,Roof Panel (Pavillon),45000
+stonic,sill,Sill / Rocker (Bas de Caisse),9500
+stonic,mirror,Side Mirror Assembly (Rétroviseur),8500
+stonic,wheel_rim,Alloy Wheel / Rim (Jante),11000
+stonic,windshield_repair,Windscreen (Pare-brise),18000
+stonic,light_repair,Headlight / Taillight Assembly,12000
+sportage,front_bumper,Front Bumper (P/Chocs AV),22000
+sportage,rear_bumper,Rear Bumper (P/Chocs AR),19500
+sportage,bonnet,Bonnet / Hood (Capot),34000
+sportage,front_fender,Front Fender (Aile AV),19000
+sportage,rear_fender,Rear Fender (Aile AR),22000
+sportage,door,Door Panel (Porte),30000
+sportage,trunk,Trunk Lid (Coffre),28000
+sportage,roof,Roof Panel (Pavillon),58000
+sportage,sill,Sill / Rocker (Bas de Caisse),13000
+sportage,mirror,Side Mirror Assembly (Rétroviseur),11500
+sportage,wheel_rim,Alloy Wheel / Rim (Jante),15000
+sportage,windshield_repair,Windscreen (Pare-brise),24000
+sportage,light_repair,Headlight / Taillight Assembly,16500
+seltos,front_bumper,Front Bumper (P/Chocs AV),20000
+seltos,rear_bumper,Rear Bumper (P/Chocs AR),18000
+seltos,bonnet,Bonnet / Hood (Capot),30000
+seltos,front_fender,Front Fender (Aile AV),17000
+seltos,rear_fender,Rear Fender (Aile AR),20000
+seltos,door,Door Panel (Porte),27000
+seltos,trunk,Trunk Lid (Coffre),25000
+seltos,roof,Roof Panel (Pavillon),52000
+seltos,sill,Sill / Rocker (Bas de Caisse),12000
+seltos,mirror,Side Mirror Assembly (Rétroviseur),10500
+seltos,wheel_rim,Alloy Wheel / Rim (Jante),13500
+seltos,windshield_repair,Windscreen (Pare-brise),22000
+seltos,light_repair,Headlight / Taillight Assembly,15000
+sorento,front_bumper,Front Bumper (P/Chocs AV),28000
+sorento,rear_bumper,Rear Bumper (P/Chocs AR),25000
+sorento,bonnet,Bonnet / Hood (Capot),44000
+sorento,front_fender,Front Fender (Aile AV),25000
+sorento,rear_fender,Rear Fender (Aile AR),28000
+sorento,door,Door Panel (Porte),38000
+sorento,trunk,Trunk Lid (Coffre),36000
+sorento,roof,Roof Panel (Pavillon),72000
+sorento,sill,Sill / Rocker (Bas de Caisse),16000
+sorento,mirror,Side Mirror Assembly (Rétroviseur),14000
+sorento,wheel_rim,Alloy Wheel / Rim (Jante),18000
+sorento,windshield_repair,Windscreen (Pare-brise),30000
+sorento,light_repair,Headlight / Taillight Assembly,22000
+carnival,front_bumper,Front Bumper (P/Chocs AV),32000
+carnival,rear_bumper,Rear Bumper (P/Chocs AR),28000
+carnival,bonnet,Bonnet / Hood (Capot),48000
+carnival,front_fender,Front Fender (Aile AV),27000
+carnival,rear_fender,Rear Fender (Aile AR),30000
+carnival,door,Door Panel (Porte),42000
+carnival,trunk,Trunk Lid (Coffre),38000
+carnival,roof,Roof Panel (Pavillon),80000
+carnival,sill,Sill / Rocker (Bas de Caisse),18000
+carnival,mirror,Side Mirror Assembly (Rétroviseur),15500
+carnival,wheel_rim,Alloy Wheel / Rim (Jante),19500
+carnival,windshield_repair,Windscreen (Pare-brise),34000
+carnival,light_repair,Headlight / Taillight Assembly,25000
+ev6,front_bumper,Front Bumper (P/Chocs AV),38000
+ev6,rear_bumper,Rear Bumper (P/Chocs AR),34000
+ev6,bonnet,Bonnet / Hood (Capot),55000
+ev6,front_fender,Front Fender (Aile AV),32000
+ev6,rear_fender,Rear Fender (Aile AR),35000
+ev6,door,Door Panel (Porte),48000
+ev6,trunk,Trunk Lid (Coffre),44000
+ev6,roof,Roof Panel (Pavillon),90000
+ev6,sill,Sill / Rocker (Bas de Caisse),20000
+ev6,mirror,Side Mirror Assembly (Rétroviseur),18000
+ev6,wheel_rim,Alloy Wheel / Rim (Jante),22000
+ev6,windshield_repair,Windscreen (Pare-brise),42000
+ev6,light_repair,Headlight / Taillight Assembly,30000
+ev5,front_bumper,Front Bumper (P/Chocs AV),36000
+ev5,rear_bumper,Rear Bumper (P/Chocs AR),32000
+ev5,bonnet,Bonnet / Hood (Capot),52000
+ev5,front_fender,Front Fender (Aile AV),30000
+ev5,rear_fender,Rear Fender (Aile AR),33000
+ev5,door,Door Panel (Porte),45000
+ev5,trunk,Trunk Lid (Coffre),42000
+ev5,roof,Roof Panel (Pavillon),85000
+ev5,sill,Sill / Rocker (Bas de Caisse),19000
+ev5,mirror,Side Mirror Assembly (Rétroviseur),17000
+ev5,wheel_rim,Alloy Wheel / Rim (Jante),21000
+ev5,windshield_repair,Windscreen (Pare-brise),40000
+ev5,light_repair,Headlight / Taillight Assembly,28000
+ev9,front_bumper,Front Bumper (P/Chocs AV),45000
+ev9,rear_bumper,Rear Bumper (P/Chocs AR),40000
+ev9,bonnet,Bonnet / Hood (Capot),65000
+ev9,front_fender,Front Fender (Aile AV),38000
+ev9,rear_fender,Rear Fender (Aile AR),42000
+ev9,door,Door Panel (Porte),58000
+ev9,trunk,Trunk Lid (Coffre),55000
+ev9,roof,Roof Panel (Pavillon),110000
+ev9,sill,Sill / Rocker (Bas de Caisse),24000
+ev9,mirror,Side Mirror Assembly (Rétroviseur),22000
+ev9,wheel_rim,Alloy Wheel / Rim (Jante),28000
+ev9,windshield_repair,Windscreen (Pare-brise),50000
+ev9,light_repair,Headlight / Taillight Assembly,36000
+k3,front_bumper,Front Bumper (P/Chocs AV),18000
+k3,rear_bumper,Rear Bumper (P/Chocs AR),16000
+k3,bonnet,Bonnet / Hood (Capot),26000
+k3,front_fender,Front Fender (Aile AV),15500
+k3,rear_fender,Rear Fender (Aile AR),18000
+k3,door,Door Panel (Porte),24000
+k3,trunk,Trunk Lid (Coffre),22000
+k3,roof,Roof Panel (Pavillon),48000
+k3,sill,Sill / Rocker (Bas de Caisse),11000
+k3,mirror,Side Mirror Assembly (Rétroviseur),9000
+k3,wheel_rim,Alloy Wheel / Rim (Jante),11500
+k3,windshield_repair,Windscreen (Pare-brise),19000
+k3,light_repair,Headlight / Taillight Assembly,14000
+k5,front_bumper,Front Bumper (P/Chocs AV),24000
+k5,rear_bumper,Rear Bumper (P/Chocs AR),22000
+k5,bonnet,Bonnet / Hood (Capot),36000
+k5,front_fender,Front Fender (Aile AV),21000
+k5,rear_fender,Rear Fender (Aile AR),24000
+k5,door,Door Panel (Porte),32000
+k5,trunk,Trunk Lid (Coffre),30000
+k5,roof,Roof Panel (Pavillon),62000
+k5,sill,Sill / Rocker (Bas de Caisse),14000
+k5,mirror,Side Mirror Assembly (Rétroviseur),12000
+k5,wheel_rim,Alloy Wheel / Rim (Jante),16000
+k5,windshield_repair,Windscreen (Pare-brise),26000
+k5,light_repair,Headlight / Taillight Assembly,18000

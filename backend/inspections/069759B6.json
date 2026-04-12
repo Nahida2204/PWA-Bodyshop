@@ -1,0 +1,42 @@
+{
+  "id": "069759B6",
+  "created_at": "2026-04-11T10:53:10.851929+00:00",
+  "vehicle": {
+    "make": null,
+    "model": "Kia seltos",
+    "year": 2022,
+    "vin": null,
+    "registration": null,
+    "size": "medium"
+  },
+  "severity": "minor",
+  "estimate": {
+    "listType": "client",
+    "vehicleSize": "medium",
+    "subtotal": 8025,
+    "vat": 1204,
+    "total": 9229,
+    "items": [
+      {
+        "part": "Bonnet / Hood (Capot)",
+        "partKey": "bonnet",
+        "damageType": "dent",
+        "severity": "minor",
+        "damageLevel": "leger",
+        "fru_total": 8025,
+        "forfait": 10569,
+        "decision": "repair",
+        "spare_part_price": null,
+        "line_total": 8025,
+        "manual": false
+      }
+    ]
+  },
+  "total_loss": {
+    "decision": "Repairable",
+    "pre_accident_value": "Rs 947,591",
+    "repair_estimate": "Rs 8,025",
+    "threshold": "Rs 568,555",
+    "repair_pct_of_pav": "0.8%"
+  }
+}

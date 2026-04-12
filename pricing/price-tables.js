@@ -169,8 +169,7 @@ export const FORFAIT = {
     front_bumper:  { medium: { leger:  9229, moyen: 14864 }, large: { leger: 11701, moyen: 16603 } },
     bonnet:        { medium: { leger: 10569, moyen: 15813 }, large: { leger: 12564, moyen: 18343 } },
     front_fender:  { medium: { leger:  7993, moyen: 13122 }, large: { leger:  9516, moyen: 15180 } },
-    front_door:    { medium: { leger:  9994, moyen: 15180 }, large: { leger: 11989, moyen: 17710 } },
-    rear_door:     { medium: { leger:  9994, moyen: 15180 }, large: { leger: 11989, moyen: 17710 } },
+    door:    { medium: { leger:  9994, moyen: 15180 }, large: { leger: 11989, moyen: 17710 } },
     rear_fender:   { medium: { leger:  9039, moyen: 14231 }, large: { leger: 11040, moyen: 15974 } },
     rear_bumper:   { medium: { leger:  8763, moyen: 13599 }, large: { leger:  9994, moyen: 15663 } },
     trunk:         { medium: { leger:  9516, moyen: 14709 }, large: { leger: 11529, moyen: 16445 } },
@@ -180,13 +179,15 @@ export const FORFAIT = {
     mirror:        { medium: { leger:  2473, moyen:  2473 }, large: { leger:  2473, moyen:  2473 } },
     wheel_rim:     { medium: { leger:  5750, moyen:  5750 }, large: { leger:  5750, moyen:  5750 } },
     spot_repair:   { medium: { leger:  6325, moyen:  6325 }, large: { leger:  6325, moyen:  6325 } },
+    windshield_repair: { medium: { leger:  8400, moyen:  8400 }, large: { leger:  8400, moyen:  8400 } },
+    light_repair:   { medium: { leger:  6325, moyen:  6325 }, large: { leger:  6325, moyen:  6325 } },
+
   },
   interne: {
     front_bumper:  { medium: { leger:  7533, moyen: 12018 }, large: { leger:  9528, moyen: 13403 } },
     bonnet:        { medium: { leger:  8711, moyen: 12920 }, large: { leger: 10344, moyen: 14973 } },
     front_fender:  { medium: { leger:  6532, moyen: 10626 }, large: { leger:  7803, moyen: 12317 } },
-    front_door:    { medium: { leger:  8165, moyen: 12317 }, large: { leger:  9798, moyen: 14369 } },
-    rear_door:     { medium: { leger:  8165, moyen: 12317 }, large: { leger:  9798, moyen: 14369 } },
+    door:    { medium: { leger:  8165, moyen: 12317 }, large: { leger:  9798, moyen: 14369 } },
     rear_fender:   { medium: { leger:  7441, moyen: 11592 }, large: { leger:  9074, moyen: 12981 } },
     rear_bumper:   { medium: { leger:  7170, moyen: 10988 }, large: { leger:  8165, moyen: 12679 } },
     trunk:         { medium: { leger:  7803, moyen: 11954 }, large: { leger:  9436, moyen: 13343 } },
@@ -196,6 +197,8 @@ export const FORFAIT = {
     mirror:        { medium: { leger:  1995, moyen:  1995 }, large: { leger:  1995, moyen:  1995 } },
     wheel_rim:     { medium: { leger:  5175, moyen:  5175 }, large: { leger:  5175, moyen:  5175 } },
     spot_repair:   { medium: { leger:  5463, moyen:  5463 }, large: { leger:  5463, moyen:  5463 } },
+    windshield_repair: { medium: { leger:  6000, moyen:  6000 }, large: { leger:  6000, moyen:  6000 } },
+    light_repair:   { medium: { leger:  5000, moyen:  5000 }, large: { leger:  5000, moyen:  5000} },
   },
 };
 
